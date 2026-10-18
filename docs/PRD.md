@@ -156,6 +156,19 @@ Priority key: **P0** = must have, **P1** = should have, **P2** = nice to have.
 | FR-41 | Admins can disable any link; redirects stop immediately | P0 |
 | FR-42 | Abuse monitoring and flagged-link view | P2 |
 
+### 6.11 Differentiators (Stretch Goals)
+Special features implemented only if time permits:
+
+| ID | Requirement | Priority |
+|---|---|---|
+| FR-43 | Redirect Trace: diagnostic tool showing step-by-step rule evaluation for a link | P2 |
+| FR-44 | A/B split links: split traffic across two destinations and track variant metrics | P2 |
+| FR-45 | Link health check: scheduled background check of destination URLs to alert on dead links | P2 |
+| FR-46 | Safety risk score: calculate Low, Medium, or High risk badge before publishing in wizard | P2 |
+| FR-47 | Plain-English insights: automated text statements generated from live analytics data | P2 |
+| FR-48 | Device targeting: route mobile and desktop visitors to separate destination URLs | P2 |
+
+
 ## 7. Core User Flows
 
 ### 7.1 Link Creation to Analytics
@@ -209,11 +222,16 @@ The engine evaluates rules in this order:
 
 ## 11. Proposed Tech Stack
 
-| Layer | Choice |
-|---|---|
-| Frontend/Backend-Next.js | 
-| Database | supabase |
-| Hosting | cloudflare|
+| Layer | Choice | Why |
+|---|---|---|
+| Fullstack Framework | Next.js (App Router, TypeScript) | Unified frontend, API route handlers, and server actions with type safety |
+| UI and Styling | Tailwind CSS, shadcn/ui, Recharts | Accessible component primitives and responsive data visualization |
+| Database and ORM | PostgreSQL on Supabase with Prisma | Managed PostgreSQL with connection pooling and type-safe schema migrations |
+| Authentication | Auth.js (NextAuth v5) | Secure session management with JWT, credentials (bcrypt), and Google OAuth |
+| Cache and Rate Limiting | Upstash Redis | Low-latency edge caching for redirects and distributed rate limiting |
+| Parsing and Utilities | isbot, ua-parser-js, nanoid, qrcode, Papaparse, Zod | Specialized libraries for bot detection, UA parsing, QR codes, CSV, and validation |
+| Testing and Hosting | Vitest, Vercel | Fast unit testing and seamless Next.js hosting with preview deployments |
+
 
 ## 12. Team and Ownership
 
