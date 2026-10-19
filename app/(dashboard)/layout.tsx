@@ -1,25 +1,26 @@
 // Owner: Megha | Task: MEG-P1-1 | Priority: P1
-import React from "react";
 
-// TODO (MEG): App shell with responsive sidebar, navbar, and main content area
+import React from "react";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Navbar } from "@/components/layout/navbar";
+
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen">
-      <aside className="w-64 border-r bg-muted/30 p-4">
-        <p className="font-semibold mb-4">LinkPulse</p>
-        <nav className="space-y-2 text-sm text-muted-foreground">
-          <p>Sidebar Slot</p>
-        </nav>
-      </aside>
-      <div className="flex flex-1 flex-col">
-        <header className="h-14 border-b px-6 flex items-center justify-between">
-          <p className="text-sm font-medium">Navbar Slot</p>
-        </header>
-        <main className="flex-1 p-6">{children}</main>
+    <div className="flex min-h-screen bg-background text-foreground">
+      <div className="hidden md:flex">
+        <Sidebar />
+      </div>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Navbar />
+
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          {children}
+        </main>
       </div>
     </div>
   );
