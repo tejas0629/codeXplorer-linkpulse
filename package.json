@@ -9,9 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "isbot": "5.2.2",
     "next": "16.4.2",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "ua-parser-js": "1.0.41"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
