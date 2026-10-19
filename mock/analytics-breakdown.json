@@ -1,0 +1,19 @@
+{
+  "data": {
+    "devices": [
+      { "name": "desktop", "count": 820, "percentage": 57.7 },
+      { "name": "mobile", "count": 520, "percentage": 36.6 },
+      { "name": "tablet", "count": 80, "percentage": 5.7 }
+    ],
+    "browsers": [
+      { "name": "Chrome", "count": 910, "percentage": 64.1 },
+      { "name": "Safari", "count": 310, "percentage": 21.8 },
+      { "name": "Firefox", "count": 200, "percentage": 14.1 }
+    ],
+    "referrers": [
+      { "name": "direct", "count": 650, "percentage": 45.8 },
+      { "name": "twitter.com", "count": 420, "percentage": 29.6 },
+      { "name": "linkedin.com", "count": 350, "percentage": 24.6 }
+    ]
+  }
+}

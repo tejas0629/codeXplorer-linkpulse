@@ -1,271 +1,183 @@
-# 🔗 LinkPulse: URL Shortener & Analytics Platform
+# LinkPulse
+Governed URL shortener and live analytics platform built for reliable, safe link management.
 
-## 📌 Table of Contents
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-green)
+![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC)
+![Vercel](https://img.shields.io/badge/Vercel-Hosted-black)
 
-1. Problem Statement
-2. Our Solution
-3. Goals & Scope
-4. User Roles
-5. Features
-6. How It Works (Complete Flow)
-7. Redirect Engine Logic
-8. Click Tracking & Analytics
-9. Data Model (High Level)
-10. Architecture Approach
-11. Tech Stack
-12. Project Phases
-13. Demo Plan
-14. Future Roadmap
-15. Team
----
+## Table of Contents
+- [LinkPulse](#linkpulse)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [The Problem and Our Approach](#the-problem-and-our-approach)
+  - [Key Features](#key-features)
+  - [How It Works](#how-it-works)
+  - [Tech Stack](#tech-stack)
+  - [Getting Started](#getting-started)
+  - [Environment Variables](#environment-variables)
+  - [Scripts](#scripts)
+  - [Project Structure](#project-structure)
+  - [API Overview](#api-overview)
+  - [Documentation](#documentation)
+  - [Roadmap](#roadmap)
+  - [Screenshots](#screenshots)
+  - [Team](#team)
+  - [Contributing](#contributing)
+  - [License](#license)
 
-## 🧩 Problem Statement
+## Overview
+Basic URL shorteners only map a code to a URL without rules or governance.
+LinkPulse combines link creation, pre-publish validation, rule evaluation, and live analytics into one workflow.
+Every redirect enforces active status, expiry, click caps, and password protection.
+Click data is logged asynchronously after redirection so visitor response times remain fast.
+The platform gives marketing and operations teams actionable insights without losing historical data.
 
-Most basic URL shorteners only do one thing: map a short code to a long URL. But real marketing and operations teams need **links, analytics, and governance to work together**.
+## The Problem and Our Approach
+| Problem                                      | How LinkPulse handles it                                                                            |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Basic shorteners lack rule governance        | Enforces active status, expiration date, atomic click caps, and passwords.                          |
+| Scattered links without organization         | Groups links into campaigns and reusable tags with aggregated reporting.                            |
+| Slow redirects caused by synchronous logging | Logs visits asynchronously via background worker after sending HTTP 302.                            |
+| Malicious or dead links published by mistake | Checks destination domain and alias availability before publishing; provides instant admin disable. |
+| Expired or disabled links lose click records | Retains full click history forever; marks bot visits instead of dropping data.                      |
 
-A single link may:
+## Key Features
+- Core: Role-based access (Visitor, User, Admin), unique code and alias generator, 302 redirect engine, async click logging, live dashboard.
+- Rules and Safety: Expiry dates, atomic click limits, password protection, creation wizard validation, domain blocklist, rate limiting.
+- Organization and Productivity: Campaign management, tags, QR code generation with scan tracking, CSV bulk import with error reports.
+- Planned Special Features: Redirect Trace debugger, device targeting, A/B split links, destination link health check, plain-English insights.
 
-- belong to a **campaign**
-- **expire** next month
-- redirect **mobile users** to a different destination
-- need to be **disabled quickly** if it turns out to be malicious
+Note: Features are currently being built. Current development status is tracked in [docs/TEAM_TASKS.md](docs/TEAM_TASKS.md).
 
-On top of that, click data must be recorded **without slowing down redirects**, and the dashboard must turn raw data into **insights people can act on**.
-
-**The challenge:** build a platform that manages the *full link lifecycle*: creation, redirection, tracking, analytics, and expiry or takedown.
-
----
-
-## 💡 Our Solution
-
-**LinkPulse** is a URL shortener that goes beyond "paste a URL, get a short URL".
-
-The **Link** is the central hub of the system:
-
-| Component | Role |
-|---|---|
-| **Link** | Core record: destination, short code, status, rules |
-| **Campaigns & Tags** | Organize and group links |
-| **Redirect Rules** | Control who can access a link and when (expiry, click cap, password, status) |
-| **Click Events** | Capture every visit (time, device, browser, referrer, location) |
-| **Dashboard** | Turns click and link data into live, actionable reports |
-
-Everything is **driven by real data**. No hardcoded values in redirects, rules, or reports.
-
----
-
-## 🎯 Goals & Scope
-
-- **Reliable redirection:** unique short codes; redirect only when the link is active, unexpired, and within its click limit
-- **Fast redirects:** click logging happens asynchronously so users are never slowed down
-- **Rules that actually work:** expiry, click caps, password protection, and active/disabled status control real redirect behavior
-- **Catch problems early:** duplicate aliases and invalid URLs are flagged *before* publishing
-- **Safety & governance:** unsafe domains can be blocked and abusive links disabled by admins instantly
-- **Full traceability:** expired or disabled links keep their analytics
-- **Live analytics:** the dashboard aggregates click and link data by period and campaign
-
----
-
-## 👥 User Roles
-
-### 🌐 Visitor (Anonymous)
-- Opens short links
-- Enters passwords for protected links
-- No management access
-
-### 👤 User
-- Creates and manages **their own** links, campaigns, tags, and QR codes
-- Views analytics for **their own links only**
-
-### 🛡️ Admin
-- Full access to all links, users, and settings
-- Disables abusive links and manages the domain blocklist
-- Views **platform-wide** analytics
-
----
-
-## ✨ Features
-
-### Core (Must Have)
-- [ ] Authentication & role-based access (Admin / User / Visitor)
-- [ ] Short link creation with auto-generated unique codes
-- [ ] Custom aliases
-- [ ] Redirect engine
-- [ ] Click tracking (time, device, browser, referrer)
-- [ ] Basic link and click analytics
-- [ ] Hosted / deployed application
-
-### Link Rules (Should Have)
-- [ ] **Expiry date:** link stops working after a set date
-- [ ] **Click cap:** link stops working after N clicks (e.g. "first 100 users only")
-- [ ] **Password protection:** visitor must enter the correct password to proceed
-- [ ] **Active / Disabled status:** link can be switched off instantly
-
-### Organization & Management (Should Have)
-- [ ] Campaigns and tags
-- [ ] Campaign performance view (total links, total clicks, top links)
-- [ ] Two-step link creation wizard (destination + alias → options + validation warnings)
-- [ ] URL and alias validation before publishing
-
-### Productivity & Safety (Should Have)
-- [ ] QR code generation (downloadable) with scan tracking
-- [ ] Bulk CSV import with error and duplicate detection
-- [ ] Bot filtering on click tracking
-- [ ] Rate limiting on link creation
-- [ ] Domain blocklist and admin link disable
-
-### Stretch Goals (Nice to Have)
-- [ ] Device-based redirect targeting (e.g. mobile vs desktop destination)
-- [ ] Geolocation tracking
-- [ ] Link-in-bio landing pages
-- [ ] Workspaces and folders
-- [ ] Abuse monitoring and link alerts
-
----
-
-## 🔄 How It Works (Complete Flow)
-
-1. **Users create** campaigns and tags
-2. **Users create links** through the wizard, with validation
-3. Links are **shared** as short URLs or QR codes
-4. **Visitors open** a link; the engine checks status, expiry, limits, and password
-5. **Each visit is logged**, with bots filtered out
-6. **Users review** link and campaign analytics
-7. **Admins disable** abusive links, which stops redirects immediately
-8. **Expired or disabled links keep their analytics**
-
----
-
-## ⚙️ Redirect Engine Logic
-
-When a visitor opens a short link, the engine checks the following **in order**:
-
+## How It Works
 ```mermaid
 flowchart TD
-    A[Visitor opens short link] --> B{Link exists?}
-    B -- No --> X1[404 Not Found]
-    B -- Yes --> C{Status active?}
-    C -- No --> X2[Link disabled]
-    C -- Yes --> D{Expired?}
-    D -- Yes --> X3[Link expired]
-    D -- No --> E{Click limit reached?}
-    E -- Yes --> X4[Limit reached]
-    E -- No --> F{Password required?}
-    F -- Yes --> G{Correct password?}
-    G -- No --> X5[Ask password again]
-    G -- Yes --> H[Log click asynchronously]
-    F -- No --> H
-    H --> I[Redirect to destination URL]
+    A[Visitor opens short link] --> B{Redis Cache Hit?}
+    B -- Yes --> D[Evaluate Link Rules]
+    B -- No --> C[Query PostgreSQL Supabase]
+    C -->|Found| PutCache[Cache in Redis] --> D
+    C -->|Not Found| NF[Show /not-found]
+    D --> E{Active?}
+    E -- No --> Dis[Show /disabled]
+    E -- Yes --> F{Not Expired?}
+    F -- No --> Exp[Show /expired]
+    F -- Yes --> G{Under Click Cap?}
+    G -- No --> Lim[Show /limit-reached]
+    G -- Yes --> H{Password Required?}
+    H -- Yes --> Pwd[Show /password prompt]
+    H -- No --> Redir[HTTP 302 Redirect]
+    Redir --> Log[Async ClickEvent to Database]
 ```
 
-**Why this matters:**
-- The order of rule checks is intentional and consistent
-- Click logging runs **asynchronously**, so the redirect stays fast
-- Failed attempts (expired, disabled, limit reached) can still be tracked for reporting
+## Tech Stack
+| Layer                   | Technology                                          |
+| ----------------------- | --------------------------------------------------- |
+| Framework               | Next.js (App Router, TypeScript)                    |
+| UI and Styling          | Tailwind CSS, shadcn/ui, Recharts                   |
+| Database and ORM        | PostgreSQL on Supabase, Prisma ORM                  |
+| Authentication          | Auth.js (Credentials with bcrypt, Google OAuth)     |
+| Cache and Rate Limiting | Upstash Redis                                       |
+| Utilities               | isbot, ua-parser-js, nanoid, qrcode, Papaparse, Zod |
+| Hosting                 | Vercel                                              |
 
----
+## Getting Started
+Prerequisites: Node.js 20+ and npm. For complete step-by-step setup, see [docs/SETUP.md](docs/SETUP.md).
 
-##  Click Tracking & Analytics
+```bash
+git clone https://github.com/tejas0629/LinkPulse-URL-Shortener-Analytics-Platform-CodeXplorer-.git
+npm install
+cp .env.example .env
+npm run dev
+```
 
-### What we capture for every click
-- Timestamp
-- Referrer (traffic source)
-- Device type
-- Browser
-- Location *(stretch goal)*
-- Unique visitor identification 
-- Bot detection flag
+Note: The database schema in prisma/schema.prisma is currently a draft that Tejas must approve and commit before migrations. Run unit tests with `npm test`.
 
-### What users and admins see
+## Environment Variables
+Configured in `.env` (template in `.env.example`):
+| Variable                   | Purpose                                                   |
+| -------------------------- | --------------------------------------------------------- |
+| `DATABASE_URL`             | Supabase PostgreSQL pooled connection string for runtime   |
+| `DIRECT_URL`               | Supabase PostgreSQL direct connection string for migrations|
+| `AUTH_SECRET`              | Secret key for Auth.js session encryption                 |
+| `AUTH_URL`                 | Application root URL for authentication redirects         |
+| `AUTH_GOOGLE_ID`           | Google OAuth client ID                                    |
+| `AUTH_GOOGLE_SECRET`       | Google OAuth client secret                                |
+| `UPSTASH_REDIS_REST_URL`   | Upstash Redis REST endpoint for caching and rate limiting |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis REST token                                  |
+| `NEXT_PUBLIC_APP_URL`      | Public application URL used for link and QR generation    |
 
-| Panel | Visibility |
-|---|---|
-| **User panel** | Analytics for **own links only** |
-| **Admin panel** | **Platform-wide** analytics across all users and links |
+## Scripts
+| Script  | Command         | Purpose                                        |
+| ------- | --------------- | ---------------------------------------------- |
+| `dev`   | `npm run dev`   | Runs local dev server on http://localhost:3000 |
+| `build` | `npm run build` | Builds production bundle                       |
+| `start` | `npm run start` | Starts production server                       |
+| `lint`  | `npm run lint`  | Runs ESLint                                    |
+| `test`  | `npm test`      | Runs unit test suite via Vitest                |
 
-### Reports include
-- Total clicks and unique visitors
-- Clicks over time (daily / weekly / monthly)
-- Device and browser breakdown
-- Traffic sources (referrers)
-- Top-performing links
-- Campaign performance
-- Link alerts (expiring soon, limit nearly reached, flagged links)
+## Project Structure
+```text
+linkpulse/
+|-- app/                    # Next.js App Router pages and route handlers
+|-- components/             # Reusable UI, wizard, and chart components
+|-- docs/                   # Full documentation (PRD, API, architecture, database, setup)
+|-- lib/                    # Core business logic, rules, validation, and database client
+|-- prisma/                 # Database schema (draft) and seed scripts
+\-- public/                 # Static assets
+```
 
-> **Note:** The dashboard uses **live data only**. Expired or disabled links remain in reports with their historical analytics.
+## API Overview
+All endpoints return standard `{ data: ... }` or `{ error: ... }` formats. Detailed contracts are in [docs/API.md](docs/API.md).
+| Group              | Path                              | Purpose                                              |
+| ------------------ | --------------------------------- | ---------------------------------------------------- |
+| Public Redirect    | `GET /[code]`                     | Redirects visitor or displays status page            |
+| Authentication     | `/api/auth/*`                     | Registration, login, and session status              |
+| Links              | `/api/links/*`                    | Link CRUD, alias checks, and rule configuration      |
+| Analytics          | `/api/analytics/*`                | Aggregated summaries, timeseries, and breakdowns     |
+| Campaigns and Tags | `/api/campaigns/*`, `/api/tags/*` | Grouping links and campaign metrics                  |
+| Bulk Import        | `/api/import/*`                   | CSV preview validation and batch commit              |
+| QR Codes           | `GET /api/qr/[id]`                | Generates downloadable PNG QR codes                  |
+| Admin Controls     | `/api/admin/*`                    | User management, instant link disable, and blocklist |
 
----
+## Documentation
+| Document                                     | Description                                              |
+| -------------------------------------------- | -------------------------------------------------------- |
+| [docs/PRD.md](docs/PRD.md)                   | Product requirements, user stories, and feature tiers    |
+| [docs/API.md](docs/API.md)                   | Complete endpoint schemas, request/response samples      |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Architecture flowcharts and folder ownership             |
+| [docs/DATABASE.md](docs/DATABASE.md)         | Database models, enums, indexes, and schema change rules |
+| [docs/SETUP.md](docs/SETUP.md)               | 20-minute local environment setup and Vercel deployment  |
+| [docs/TEAM_TASKS.md](docs/TEAM_TASKS.md)     | Team task allocation, priorities, and checkpoints        |
 
+## Roadmap
+From [docs/PRD.md](docs/PRD.md) future roadmap:
+- Custom domain support
+- Advanced device and geo targeting
+- Public developer API
+- Link-in-bio landing pages
+- Team workspaces and shared folders
+- Automated abuse detection and email alerts
+- Exportable analytics reports (CSV and PDF)
 
-## 🏗️ Architecture Approach
+## Screenshots
+Screenshots will be added after the UI is built.
 
-- **Role-based access control:** Admin, User, and Visitor permissions enforced on the backend
-- **Application-level logic:** code generation, alias validation, and rule evaluation are implemented in our own application code
-- **Async click logging:** clicks are recorded in the background so redirects stay fast
-- **Caching (where useful):** frequently accessed links can be cached for quicker redirects
-- **Clear data relationships:** Link-centered model connecting campaigns, rules, and click events
-- **Rate limiting:** applied to link creation to prevent abuse
-- **Safety layer:** URL validation, domain blocklist, and admin takedown
+## Team
+| Name      | Role                | Responsibility                                                                     |
+| --------- | ------------------- | ---------------------------------------------------------------------------------- |
+| Tejas     | Team Lead           | Repo setup, DB schema, redirect engine, async click logging, deployment            |
+| Chirag    | Backend Developer   | Link creation backend, rules, rate limiting, analytics APIs                        |
+| Milan     | Fullstack Developer | Auth and RBAC, campaigns and tags, CSV import, admin APIs, QR                      |
+| Megha     | Frontend Developer  | Base layout, auth pages, link wizard, links list and details, visitor status pages |
+| Samriddhi | Frontend Developer  | Analytics dashboard, charts, campaigns UI, QR and CSV UI, admin panel              |
 
----
+## Contributing
+We welcome contributions through our feature-branch workflow.
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming, PR conventions, and code standards.
+Always pull the latest `dev` before starting new feature work.
 
-## 🛠️ Tech Stack
-
-> 🚧 **To be finalized.** The team will decide the stack together today evening in the Google meet.
-
-| Layer | Choice |
-|---|---|
-| Frontend |  |
-| Backend |  |
-| Database |  |
-| Hosting / Deployment |  |
-
----
-
-## 🚦 Project Phases
-
-### Round 1: Ideation
-Present the idea, problem statement, proposed solution, and project approach through a PPT.
-
-### Round 2: Implementation
-Build the solution, implement key features, and demonstrate a working prototype.
-
-**Priority:** a **working, deployed core** matters more than a long list of half-built features.
-
-**Minimum viable product:**
-1. User creates a short link
-2. Visitor is redirected through it
-3. Basic click tracking is visible
-4. All of it is available on a **hosted link**
-
----
-
-## 🎬 Demo Plan
-
-A **5-minute walkthrough** of two scenarios:
-
-1. **Link creation → analytics**
-   Create a campaign → create a link through the wizard → open it → see clicks appear on the dashboard
-2. **Bulk import → link disable**
-   Import links via CSV (with errors/duplicates flagged) → admin disables an abusive link → redirect stops immediately, analytics remain
-
-The app will be pre-loaded with **sample links, campaigns, and clicks** so the dashboard is meaningful.
-
----
-
-## 🔮 Future Roadmap
-
-- Custom domains
-- Device and geo-based targeting
-- Public API for programmatic link creation
-- Link-in-bio pages
-- Workspaces and folders for team collaboration
-- Advanced abuse detection and automated alerts
-- Exportable reports (CSV / PDF)
-
----
-
-## 👨‍💻 Team
-
-**Team Name:** Code Xplorers
----
+## License
+License: TBD by the team.
