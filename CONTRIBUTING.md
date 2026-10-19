@@ -6,13 +6,13 @@ Thanks for being part of the team! This guide explains how we work together so t
 
 ## 1. Team and Ownership
 
-| Member | Area | Branch(es) |
-|---|---|---|
-| **Tejas (Leader)** | Repo setup, DB schema, redirect engine, async click logging, bot filtering, deployment | `feature/tej-redirect-click-tracking` |
-| **Chirag** | Link creation backend, rules, rate limiting, analytics APIs | `feature/chi-link-creation-rules`, `feature/chi-analytics-api` |
-| **Milan** | Auth and RBAC, campaigns and tags, CSV import, admin APIs, QR generation | `feature/mil-auth-rbac`, `feature/mil-campaigns-csv-admin` |
-| **Megha** | Frontend base layout, login and register, link wizard, links list and details | `feature/meg-frontend-core` |
-| **Samriddhi** | Analytics dashboard UI, campaigns, QR, CSV and admin pages | `feature/sam-frontend-dashboard` |
+| Member             | Area                                                                                   | Branch(es)                                                     |
+| ------------------ | -------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| **Tejas (Leader)** | Repo setup, DB schema, redirect engine, async click logging, bot filtering, deployment | `feature/tej-redirect-click-tracking`                          |
+| **Chirag**         | Link creation backend, rules, rate limiting, analytics APIs                            | `feature/chi-link-creation-rules`, `feature/chi-analytics-api` |
+| **Milan**          | Auth and RBAC, campaigns and tags, CSV import, admin APIs, QR generation               | `feature/mil-auth-rbac`, `feature/mil-campaigns-csv-admin`     |
+| **Megha**          | Frontend base layout, login and register, link wizard, links list and details          | `feature/meg-frontend-core`                                    |
+| **Samriddhi**      | Analytics dashboard UI, campaigns, QR, CSV and admin pages                             | `feature/sam-frontend-dashboard`                               |
 
 Work in your own area. If you want to change something owned by someone else, talk to them first.
 
@@ -20,18 +20,18 @@ Work in your own area. If you want to change something owned by someone else, ta
 
 ## 2. Project Structure
 
-```
+```text
 linkpulse/
-├── app/             # Next.js App Router: pages and API route handlers
-│   ├── api/         # Backend endpoints (route handlers)
-│   └── (pages)/     # Frontend pages
-├── components/      # Reusable React components
-├── lib/             # Business logic (code generation, rule evaluation, validation)
-├── prisma/          # Database schema and migrations
-├── public/          # Static files
-├── README.md
-├── PRD.md
-└── CONTRIBUTING.md
+|-- app/             # Next.js App Router: pages and API route handlers
+|   |-- api/         # Backend endpoints (route handlers)
+|   \-- (pages)/     # Frontend pages
+|-- components/      # Reusable React components
+|-- docs/            # Project documentation (PRD.md, API.md, etc.)
+|-- lib/             # Business logic (code generation, rule evaluation, validation)
+|-- prisma/          # Database schema and migrations
+|-- public/          # Static files
+|-- README.md
+\-- CONTRIBUTING.md
 ```
 
 > The exact structure will be finalized by the team lead when the base project is created.
@@ -42,8 +42,7 @@ linkpulse/
 
 1. **Clone the repository**
    ```bash
-   git clone <repo-url>
-   cd linkpulse
+   git clone https://github.com/tejas0629/LinkPulse-URL-Shortener-Analytics-Platform-CodeXplorer-.git
    ```
 
 2. **Set your Git identity** (use the email linked to your GitHub account so your commits show under your name):
@@ -73,11 +72,11 @@ linkpulse/
 
 ## 4. Branching Strategy
 
-| Branch | Purpose |
-|---|---|
-| `main` | Stable, deployable code only |
-| `dev` | Integration branch where all features come together |
-| `feature/<name>` | One branch per feature or task |
+| Branch           | Purpose                                             |
+| ---------------- | --------------------------------------------------- |
+| `main`           | Stable, deployable code only                        |
+| `dev`            | Integration branch where all features come together |
+| `feature/<name>` | One branch per feature or task                      |
 
 ### Rules
 - **Never push directly to `main` or `dev`.** Always use a Pull Request.
@@ -211,7 +210,7 @@ Avoid vague messages like `update`, `changes`, or `fix stuff`.
 
 Frontend and backend live in the same codebase but are built by different people in parallel, so we agree on endpoints **before** building them.
 
-- Maintain an `API.md` listing each endpoint: URL, method, request body, and response
+- Maintain `docs/API.md` listing each endpoint: URL, method, request body, and response
 - Backend owners announce any change to an endpoint to the frontend owners immediately
 - Until an endpoint is ready, the frontend uses dummy data
 
