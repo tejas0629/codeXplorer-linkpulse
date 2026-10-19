@@ -20,7 +20,7 @@ export interface ApiFailure {
   };
 }
 
-// Redirect and Password Verification
+// Redirect and Password Verification (Unlock Endpoint: POST /api/unlock/[code])
 export interface VerifyPasswordRequest {
   password: string;
 }
@@ -28,6 +28,9 @@ export interface VerifyPasswordRequest {
 export interface VerifyPasswordResponse {
   destinationUrl: string;
 }
+
+export type UnlockLinkRequest = VerifyPasswordRequest;
+export type UnlockLinkResponse = VerifyPasswordResponse;
 
 // Auth Endpoints
 export interface RegisterRequest {

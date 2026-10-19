@@ -56,18 +56,18 @@ All errors return an `error` object with standard codes, human-readable message,
 - Owner: Tejas
 - Priority: P1
 - Auth: Public
-- Description: Public entry point for shortened URLs. Evaluates rules in fixed order: existence, active status, expiration, click cap, password protection. If all checks pass, redirects with HTTP 302 and logs ClickEvent asynchronously.
+- Description: Public entry point for shortened URLs. Evaluates rules in fixed order: existence, active status, expiration, click cap, password protection. If all checks pass, redirects with HTTP 302 and logs ClickEvent asynchronously. Soft-deleted links (deletedAt is set) return not-found.
 - Request: Path parameter `code` (string, 3 to 64 chars).
 - Responses:
   - 302 Found: Redirects to `destinationUrl` (or `mobileUrl` if mobile device detected).
   - Redirect to Visitor Status Pages on failure:
-    - `/not-found` if code does not exist.
-    - `/disabled` if link status is DISABLED.
+    - `/not-found` if code does not exist or has been soft-deleted (deletedAt is set).
+    - `/disabled` if link status is DISABLED or ADMIN_DISABLED.
     - `/expired` if expiresAt is in the past.
     - `/limit-reached` if clickCount >= maxClicks.
     - `/password/[code]` if link requires password verification.
 
-### POST /api/links/[code]/verify
+### POST /api/unlock/[code]
 - Owner: Tejas
 - Priority: P1
 - Auth: Public
@@ -190,6 +190,7 @@ All errors return an `error` object with standard codes, human-readable message,
 - Owner: Chirag
 - Priority: P1
 - Auth: USER (own links) or ADMIN (all links)
+- Description: Lists shortened links. Excludes soft-deleted links (where deletedAt is set).
 - Query Parameters: `?page=1&pageSize=20&search=report&status=ACTIVE&campaignId=`
 - Success Response (200 OK):
 ```json
@@ -225,6 +226,7 @@ All errors return an `error` object with standard codes, human-readable message,
 - Owner: Chirag
 - Priority: P1
 - Auth: Owner or ADMIN
+- Description: Returns link details. Excludes soft-deleted links (returns 404 LINK_NOT_FOUND if deletedAt is set).
 - Success Response (200 OK):
 ```json
 {
@@ -252,6 +254,7 @@ All errors return an `error` object with standard codes, human-readable message,
 - Owner: Chirag
 - Priority: P1
 - Auth: Owner or ADMIN
+- Description: Updates link configuration. Excludes soft-deleted links (returns 404 LINK_NOT_FOUND). An owner can only switch their own link between ACTIVE and DISABLED. If an owner attempts to set status ACTIVE on an ADMIN_DISABLED link, the endpoint returns 403 FORBIDDEN with message "This link was disabled by an administrator and can only be re-enabled by an admin." Only an admin can re-enable an ADMIN_DISABLED link.
 - Request Body (all optional):
 ```json
 {
@@ -291,6 +294,7 @@ All errors return an `error` object with standard codes, human-readable message,
 - Owner: Chirag
 - Priority: P1
 - Auth: Owner or ADMIN
+- Description: Soft-deletes a link by setting deletedAt to the current timestamp. Preserves all click event history and analytics for reporting. The short code remains reserved in the database because code has a unique constraint. All list, read, update, and redirect queries ignore soft-deleted links.
 - Success Response (200 OK):
 ```json
 {
@@ -575,6 +579,7 @@ All analytics endpoints support `?period=daily|weekly|monthly`, `?from=ISO`, `?t
 - Owner: Milan
 - Priority: P2
 - Auth: USER or ADMIN
+- Description: Creates a new tag scoped to the signed-in user (owner). Tag names are unique per owner. If a tag with the same name already exists for the owner, returns 409 Conflict.
 - Request Body:
 ```json
 {
@@ -597,6 +602,7 @@ All analytics endpoints support `?period=daily|weekly|monthly`, `?from=ISO`, `?t
 - Owner: Milan
 - Priority: P2
 - Auth: USER or ADMIN
+- Description: Lists tags belonging to the signed-in user (or all tags across all owners if requested by an admin).
 - Success Response (200 OK):
 ```json
 {
@@ -748,13 +754,13 @@ All analytics endpoints support `?period=daily|weekly|monthly`, `?from=ISO`, `?t
 - Owner: Milan
 - Priority: P1
 - Auth: ADMIN
-- Description: Immediately disables an abusive link and invalidates Redis cache so redirects stop at once.
+- Description: Immediately disables a link by setting its status to ADMIN_DISABLED and invalidates Redis cache so redirects stop at once. A link with ADMIN_DISABLED status cannot be re-enabled by its owner; only an administrator can re-enable it.
 - Success Response (200 OK):
 ```json
 {
   "data": {
     "id": "clzlink0000108l8d1e2f3g4",
-    "status": "DISABLED",
+    "status": "ADMIN_DISABLED",
     "cacheInvalidated": true
   }
 }
@@ -765,7 +771,7 @@ All analytics endpoints support `?period=daily|weekly|monthly`, `?from=ISO`, `?t
 - Owner: Milan
 - Priority: P1
 - Auth: ADMIN
-- Description: Re-enables a disabled link.
+- Description: Re-enables a DISABLED or ADMIN_DISABLED link by setting its status to ACTIVE. Only an admin can re-enable an ADMIN_DISABLED link.
 - Success Response (200 OK):
 ```json
 {
@@ -868,7 +874,7 @@ All analytics endpoints support `?period=daily|weekly|monthly`, `?from=ISO`, `?t
 | Endpoint | Method | Owner | Priority | Status |
 |---|---|---|---|---|
 | `/[code]` | GET | Tejas | P1 | planned |
-| `/api/links/[code]/verify` | POST | Tejas | P1 | planned |
+| `/api/unlock/[code]` | POST | Tejas | P1 | planned |
 | `/api/auth/register` | POST | Milan | P1 | planned |
 | `/api/auth/session` | GET | Milan | P1 | planned |
 | `/api/links` | POST | Chirag | P1 | planned |

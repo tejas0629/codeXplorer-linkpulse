@@ -71,16 +71,16 @@ flowchart TD
     A[Visitor opens short link] --> B{Redis Cache Hit?}
     B -- Yes --> D[Evaluate Link Rules]
     B -- No --> C[Query PostgreSQL Supabase]
-    C -->|Found| PutCache[Cache in Redis] --> D
-    C -->|Not Found| NF[Show /not-found]
+    C -->|Found & Not Deleted| PutCache[Cache in Redis] --> D
+    C -->|Not Found or Soft-deleted| NF[Show /not-found]
     D --> E{Active?}
-    E -- No --> Dis[Show /disabled]
+    E -- No: DISABLED or ADMIN_DISABLED --> Dis[Show /disabled]
     E -- Yes --> F{Not Expired?}
     F -- No --> Exp[Show /expired]
     F -- Yes --> G{Under Click Cap?}
     G -- No --> Lim[Show /limit-reached]
     G -- Yes --> H{Password Required?}
-    H -- Yes --> Pwd[Show /password prompt]
+    H -- Yes --> Pwd[Show /password prompt & POST /api/unlock/[code]]
     H -- No --> Redir[HTTP 302 Redirect]
     Redir --> Log[Async ClickEvent to Database]
 ```
@@ -106,6 +106,8 @@ flowchart TD
 - Bot flag instead of deleting: Bots are flagged via isbot (isBot: true) and excluded from reports by default, retaining audit integrity.
 - Hashed passwords: User account passwords and link passwords are encrypted with bcrypt before storage; plain text is never persisted.
 - Role checks in every endpoint: Authorization helpers in lib/rbac.ts verify roles on the server in every route handler.
+- Soft delete: DELETE on links sets deletedAt. Queries ignore deleted links and redirects return /not-found, preserving historical clicks and reserving short codes.
+- Admin disable protection: Links set to ADMIN_DISABLED by an administrator can only be re-enabled by an admin. Owners cannot re-enable them.
 - Single codebase and deployment: Next.js App Router combines frontend, API route handlers, and server actions into one Vercel deployment.
 - Server-only modules: Backend modules in lib/ import server-only to guarantee database access, secrets, and core logic never leak into client bundles.
 - Mock data switch: Setting NEXT_PUBLIC_USE_MOCKS to true enables the frontend to read JSON fixtures from mock/ without live APIs or databases.

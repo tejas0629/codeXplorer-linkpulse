@@ -51,7 +51,7 @@ Branch: `feature/tej-redirect-click-tracking`. Focus: foundation, database, redi
 | TEJ-P1-1 | Foundation setup | Install dependencies, create folder skeleton with empty stubs, add mock data, push to `dev` | Everyone can pull `dev` and run `npm run dev` | M |
 | TEJ-P1-2 | Database schema | `prisma/schema.prisma` with User, Link, Campaign, Tag, ClickEvent, BlockedDomain, first migration on Supabase | `npx prisma migrate dev` works on a clean machine and `docs/DATABASE.md` matches the schema | M |
 | TEJ-P1-3 | Shared helpers | `lib/db.ts` (Prisma client), `lib/api-response.ts` (success and error format) | All API owners import these instead of writing their own | S |
-| TEJ-P1-4 | Redirect engine | `app/[code]/route.ts` that checks in fixed order: exists, active, not expired, under click limit, password | Each failing rule shows the right status page, a good link redirects with 302 | L |
+| TEJ-P1-4 | Redirect engine | `app/[code]/route.ts` (checks in fixed order: exists and not soft-deleted, not disabled, not expired, under click limit, password) and `app/api/unlock/[code]` | Each failing rule shows the right status page, unlock endpoint returns destination, a good link redirects with 302 | L |
 | TEJ-P1-5 | Safe click cap | Click count update done as one atomic database update with a condition | Two parallel requests on the last click: exactly one succeeds | M |
 | TEJ-P1-6 | Async click logging | `lib/click-logger.ts` saves time, referrer, device, browser, visitor id after the redirect is sent | Redirect time does not depend on the log write, a click row appears in the database | M |
 | TEJ-P1-7 | Bot filtering | `lib/bot.ts` using `isbot`, sets `isBot` on the click | Known bot user agents are saved with `isBot = true` | S |
@@ -82,7 +82,7 @@ Branches: `feature/chi-link-creation-rules`, `feature/chi-analytics-api`. Focus:
 | CHI-P1-2 | Input validation | `lib/validation.ts` with Zod schemas for create and update link, URL checks (http or https only, length, not our own domain, not a blocked domain) | Invalid input returns 400 with a field-level message | M |
 | CHI-P1-3 | Rule evaluation function | `lib/rules.ts` pure function that returns a result for a link in the fixed order, with unit tests. Signature agreed at CP1 | Tejas uses it in the redirect engine, tests pass | M |
 | CHI-P1-4 | Create and list links | `POST /api/links`, `GET /api/links` (own links for User, all for Admin, with search and status filter) | A signed-in user can create and list links, link password is stored hashed | L |
-| CHI-P1-5 | Read, update, delete link | `GET`, `PATCH`, `DELETE /api/links/[id]`, enable or disable | Only the owner or an admin can change a link | M |
+| CHI-P1-5 | Read, update, delete link | `GET`, `PATCH`, `DELETE /api/links/[id]`, enable or disable | Only owner or admin can change a link; DELETE performs soft delete; owner cannot re-enable ADMIN_DISABLED link | M |
 | CHI-P1-6 | Live check endpoint | `GET /api/links/check?alias=&url=` returns alias taken, invalid URL, blocked domain | The wizard can show warnings before publishing | S |
 | CHI-P1-7 | Rate limiting | `lib/rate-limit.ts` with Upstash, applied to link creation per user | Too many creates return 429 with a retry time | S |
 | CHI-P1-8 | Core analytics APIs | `GET /api/analytics/summary`, `timeseries`, `breakdown`, `top-links` with period filter and bot toggle | Numbers match the click rows in the database, User sees own data, Admin sees all | L |
@@ -110,7 +110,7 @@ Branches: `feature/mil-auth-rbac`, `feature/mil-campaigns-csv-admin`. Focus: aut
 | MIL-P1-2 | Authentication | Auth.js setup in `lib/auth.ts` and `app/api/auth/`: email and password (bcrypt) and Google sign-in, role in the session | Register, log in and log out work, role is available in the session | L |
 | MIL-P1-3 | Register endpoint | `POST /api/auth/register` with validation and duplicate email check | A new user can be created and signs in | S |
 | MIL-P1-4 | Route protection | Protect dashboard and admin pages (check the Next docs in `node_modules/next/dist/docs/` for the current middleware or proxy file name) | Signed-out users go to login, non-admins cannot open admin pages | M |
-| MIL-P1-5 | Admin disable | `PATCH /api/admin/links/[id]/disable` and enable, calls cache invalidation | A disabled link stops redirecting right away and keeps its analytics | M |
+| MIL-P1-5 | Admin disable | `PATCH /api/admin/links/[id]/disable` (sets ADMIN_DISABLED) and enable (sets ACTIVE), calls cache invalidation | Admin disable sets ADMIN_DISABLED which only an admin can re-enable; stops redirecting immediately | M |
 | MIL-P1-6 | Admin lists | `GET /api/admin/users`, `GET /api/admin/links` | Admin sees all users and all links | S |
 
 ### P2

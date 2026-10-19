@@ -9,6 +9,7 @@ export interface RuleLinkInput {
   clickCount: number;
   hasPassword?: boolean;
   passwordHash?: string | null;
+  deletedAt?: Date | null;
 }
 
 export interface RuleContext {
@@ -18,6 +19,7 @@ export interface RuleContext {
 
 export type RuleOutcome =
   | "OK"
+  | "NOT_FOUND"
   | "DISABLED"
   | "EXPIRED"
   | "LIMIT_REACHED"
@@ -26,6 +28,7 @@ export type RuleOutcome =
 
 export type RuleResult =
   | { outcome: "OK"; destinationUrl?: string }
+  | { outcome: "NOT_FOUND"; reason?: string }
   | { outcome: "DISABLED"; reason: string }
   | { outcome: "EXPIRED"; expiresAt: Date }
   | { outcome: "LIMIT_REACHED"; clickCount: number; maxClicks: number }
@@ -33,10 +36,11 @@ export type RuleResult =
   | { outcome: "PASSWORD_INVALID"; message: string };
 
 // TODO (CHI-P1-3): Implement link evaluation logic following the fixed order:
-// 1. Status is ACTIVE
-// 2. Not expired (expiresAt > now)
-// 3. Under click limit (clickCount < maxClicks)
-// 4. Password validation via bcrypt
+// 1. deletedAt set returns NOT_FOUND
+// 2. DISABLED and ADMIN_DISABLED both return DISABLED
+// 3. Not expired (expiresAt > now), otherwise returns EXPIRED
+// 4. Under click limit (clickCount < maxClicks), otherwise returns LIMIT_REACHED
+// 5. Password check: if password required, returns PASSWORD_REQUIRED or PASSWORD_INVALID
 export async function evaluateLink(
   link: RuleLinkInput,
   ctx: RuleContext

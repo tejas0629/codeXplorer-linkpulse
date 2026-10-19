@@ -16,7 +16,8 @@ enum Role {
 
 enum LinkStatus {
   ACTIVE
-  DISABLED
+  DISABLED // disabled by the owner
+  ADMIN_DISABLED // disabled by an admin, only an admin can re-enable
 }
 
 enum ClickSource {
@@ -36,20 +37,21 @@ enum ClickResult {
 // Handles both credentials auth and OAuth accounts.
 // Roles: USER (default) and ADMIN.
 model User {
-  id            String          @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String          @unique
+  email         String    @unique
   emailVerified DateTime?
   passwordHash  String?
   image         String?
-  role          Role            @default(USER)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  links         Link[]
-  campaigns     Campaign[]
-  accounts      Account[]
-  sessions      Session[]
+  links          Link[]
+  campaigns      Campaign[]
+  tags           Tag[]
+  accounts       Account[]
+  sessions       Session[]
   blockedDomains BlockedDomain[]
 
   @@index([role])
@@ -102,31 +104,31 @@ model VerificationToken {
 // Core entity of LinkPulse.
 // Click history protection:
 // Expired links are never deleted by the system; expiration is calculated at runtime from expiresAt.
-// Disabled links have status set to DISABLED and stay in the database.
-// Deleting a link cascades to ClickEvent only on explicit user or admin deletion.
+// Disabled links have status set to DISABLED or ADMIN_DISABLED and stay in the database.
+// Deleting a link sets deletedAt (soft delete), retaining click history and keeping code reserved.
 model Link {
-  id             String       @id @default(cuid())
-  code           String       @unique
+  id             String     @id @default(cuid())
+  code           String     @unique
   destinationUrl String
   ownerId        String
-  owner          User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner          User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   campaignId     String?
-  campaign       Campaign?    @relation(fields: [campaignId], references: [id], onDelete: SetNull)
-  status         LinkStatus   @default(ACTIVE)
+  campaign       Campaign?  @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  status         LinkStatus @default(ACTIVE)
   expiresAt      DateTime?
   maxClicks      Int?
-  clickCount     Int          @default(0)
+  clickCount     Int        @default(0)
   passwordHash   String?
   mobileUrl      String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
-  clickEvents    ClickEvent[]
-  tags           LinkTag[]
+  clickEvents ClickEvent[]
+  tags        LinkTag[]
 
-  @@index([ownerId, createdAt])
+  @@index([ownerId, deletedAt, createdAt])
   @@index([campaignId])
-  @@index([code])
 }
 
 // Campaign model
@@ -140,19 +142,23 @@ model Campaign {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  links       Link[]
+  links Link[]
 
   @@index([ownerId, createdAt])
 }
 
 // Tag model
-// Simple labels attached to links.
+// Simple labels attached to links, scoped per user owner.
 model Tag {
-  id        String    @id @default(cuid())
-  name      String    @unique
-  createdAt DateTime  @default(now())
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 
-  links     LinkTag[]
+  links LinkTag[]
+
+  @@unique([ownerId, name])
 }
 
 // LinkTag model
@@ -161,12 +167,11 @@ model LinkTag {
   linkId String
   tagId  String
 
-  link   Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
-  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  link Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([linkId, tagId])
   @@index([tagId])
-  @@index([linkId])
 }
 
 // ClickEvent model
@@ -200,6 +205,4 @@ model BlockedDomain {
   addedById String?
   addedBy   User?    @relation(fields: [addedById], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
-
-  @@index([domain])
 }

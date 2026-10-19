@@ -134,7 +134,7 @@
       "destinationUrl": "https://company.org/news/oct-announcement",
       "ownerId": "clzuser000108l8g8a3z4x1",
       "campaignId": null,
-      "status": "ACTIVE",
+      "status": "ADMIN_DISABLED",
       "expiresAt": null,
       "maxClicks": null,
       "clickCount": 190,
