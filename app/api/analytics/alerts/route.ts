@@ -1,8 +1,16 @@
 // Owner: Chirag | Task: CHI-P2-2 | Priority: P2
 import { NextRequest } from "next/server";
-import { fail } from "@/lib/api-response";
+import { requireUser } from "@/lib/links-auth";
+import { getLinkAlerts } from "@/lib/analytics";
+import { ok, toErrorResponse } from "@/lib/api-response";
 
-// TODO (CHI): Link alerts for expiring links, click limits, and traffic anomalies
 export async function GET(_request: NextRequest) {
-  return fail("NOT_IMPLEMENTED", "Task CHI-P2-2: Analytics alerts not implemented");
+  try {
+    const user = await requireUser();
+    const scope = { userId: user.id, isAdmin: user.role === "ADMIN" };
+    const data = await getLinkAlerts({ scope });
+    return ok(data);
+  } catch (err: unknown) {
+    return toErrorResponse(err);
+  }
 }
