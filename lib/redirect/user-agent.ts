@@ -1,5 +1,5 @@
-import { isbot } from "isbot";
-import UAParser from "ua-parser-js";
+import { isBotUserAgent } from "../bot";
+import { UAParser } from "ua-parser-js";
 
 export type UserAgentMetadata = {
   isBot: boolean;
@@ -12,7 +12,7 @@ export function parseUserAgent(userAgent: string): UserAgentMetadata {
   const parsed = new UAParser(userAgent).getResult();
 
   return {
-    isBot: isbot(userAgent),
+    isBot: isBotUserAgent(userAgent),
     deviceType: parsed.device.type ?? "desktop",
     browser: parsed.browser.name ?? null,
     os: parsed.os.name ?? null,
