@@ -1,8 +1,20 @@
 // Owner: Chirag | Task: CHI-P1-6 | Priority: P1
 import { NextRequest } from "next/server";
-import { fail } from "@/lib/api-response";
+import { requireUser } from "@/lib/links-auth";
+import { checkLink } from "@/lib/links";
+import { ok, toErrorResponse } from "@/lib/api-response";
+import { RateLimitError } from "@/lib/rate-limit";
 
-// TODO (CHI): Live check endpoint returning alias availability, URL validity, blocked status, and risk score
-export async function GET(_request: NextRequest) {
-  return fail("NOT_IMPLEMENTED", "Task CHI-P1-6: Live link check not implemented");
+export async function GET(request: NextRequest) {
+  try {
+    const user = await requireUser();
+    const searchParams = request.nextUrl.searchParams;
+    const result = await checkLink(searchParams, user.id);
+    return ok(result);
+  } catch (err: unknown) {
+    if (err instanceof RateLimitError) {
+      return err.toResponse();
+    }
+    return toErrorResponse(err);
+  }
 }

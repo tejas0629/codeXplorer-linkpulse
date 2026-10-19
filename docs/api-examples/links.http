@@ -1,0 +1,48 @@
+### LinkPulse Links API Examples (VS Code REST Client format)
+@baseUrl = http://localhost:3000
+@linkId = clzlink0000108l8d1e2f3g4
+
+### 1. Create a shortened link (Auto-generated code)
+POST {{baseUrl}}/api/links
+Content-Type: application/json
+
+{
+  "destinationUrl": "https://example.com/blog/getting-started-2026",
+  "tagNames": ["blog", "onboarding"]
+}
+
+### 2. Create a shortened link with custom alias, password, and click limit
+POST {{baseUrl}}/api/links
+Content-Type: application/json
+
+{
+  "destinationUrl": "https://example.com/whitepaper-q1-2026",
+  "code": "q1-report",
+  "maxClicks": 250,
+  "password": "securepassword123",
+  "tagNames": ["finance", "reports"]
+}
+
+### 3. List links with pagination and search
+GET {{baseUrl}}/api/links?page=1&pageSize=20&search=report
+
+### 4. List links filtered by status and tag
+GET {{baseUrl}}/api/links?status=ACTIVE&tag=finance
+
+### 5. Get a single link by ID
+GET {{baseUrl}}/api/links/{{linkId}}
+
+### 6. Update a link destination and toggle status
+PATCH {{baseUrl}}/api/links/{{linkId}}
+Content-Type: application/json
+
+{
+  "destinationUrl": "https://example.com/updated-whitepaper-2026",
+  "status": "DISABLED"
+}
+
+### 7. Soft-delete a link
+DELETE {{baseUrl}}/api/links/{{linkId}}
+
+### 8. Live check alias availability and URL validity
+GET {{baseUrl}}/api/links/check?alias=q1-report&url=https://example.com/promo
