@@ -34,12 +34,11 @@ Checkpoints are shared moments when `dev` must be in a certain state. They are a
 
 | Folder or file | Owner |
 |---|---|
-| `prisma/schema.prisma`, `prisma/migrations/`, `prisma/seed.ts`, `package.json`, `.github/`, deployment settings | Tejas |
-| `app/[code]/` (redirect), `lib/db.ts`, `lib/api-response.ts`, `lib/cache.ts`, `lib/click-logger.ts`, `lib/bot.ts` | Tejas |
-| `lib/shortcode.ts`, `lib/validation.ts`, `lib/rules.ts`, `lib/rate-limit.ts`, `lib/analytics.ts`, `app/api/links/`, `app/api/analytics/` | Chirag |
-| `lib/auth.ts`, `lib/rbac.ts`, `lib/csv.ts`, `lib/qr.ts`, `app/api/auth/`, `app/api/campaigns/`, `app/api/tags/`, `app/api/import/`, `app/api/qr/`, `app/api/admin/` | Milan |
-| `app/layout.tsx`, `app/globals.css`, `components/layout/`, `components/wizard/`, `components/links/`, `lib/api.ts`, pages for login, register, links, link details, visitor status pages | Megha |
-| `components/charts/`, `components/analytics/`, pages for dashboard, campaigns, QR, CSV import, admin panel | Samriddhi |
+| `prisma/schema.prisma`, `prisma/migrations/`, `prisma/seed.ts`, `package.json`, `.github/`, `app/[code]/`, `app/api/unlock/`, `app/api/trace/`, `lib/db.ts`, `lib/api-response.ts`, `lib/cache.ts`, `lib/click-logger.ts`, `lib/bot.ts`, `lib/env.ts`, deployment settings | Tejas |
+| `app/api/links/`, `app/api/analytics/`, `lib/shortcode.ts`, `lib/validation.ts`, `lib/rules.ts`, `lib/rate-limit.ts`, `lib/analytics.ts`, `lib/risk.ts`, `types/api.ts` | Chirag |
+| `proxy.ts`, `app/api/auth/`, `app/api/campaigns/`, `app/api/tags/`, `app/api/import/`, `app/api/qr/`, `app/api/admin/`, `lib/auth.ts`, `lib/rbac.ts`, `lib/csv.ts`, `lib/qr.ts`, `types/next-auth.d.ts` | Milan |
+| `app/layout.tsx`, `app/globals.css`, `app/page.tsx`, `app/(auth)/`, `app/(dashboard)/layout.tsx`, `app/(dashboard)/links/`, `app/(public)/`, `components/layout/`, `components/shared/`, `components/wizard/`, `components/links/`, `components/ui/`, `lib/api.ts`, `lib/utils.ts` | Megha |
+| `app/(dashboard)/dashboard/`, `app/(dashboard)/campaigns/`, `app/(dashboard)/import/`, `app/(dashboard)/trace/`, `app/(dashboard)/admin/`, `components/charts/`, `components/analytics/`, `components/campaigns/`, `components/csv/`, `components/qr/`, `components/admin/` | Samriddhi |
 
 ## 4. Tejas (Team Lead)
 

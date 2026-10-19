@@ -1,0 +1,18 @@
+{
+  "data": {
+    "id": "clzlink0000108l8d1e2f301",
+    "code": "launch-2026",
+    "destinationUrl": "https://company.org/product-launch",
+    "ownerId": "clzuser000108l8g8a3z4x1",
+    "campaignId": "clzcamp000108l8a1b2c3d1",
+    "status": "ACTIVE",
+    "expiresAt": "2026-12-31T23:59:59.000Z",
+    "maxClicks": 1000,
+    "clickCount": 420,
+    "hasPassword": false,
+    "mobileUrl": null,
+    "createdAt": "2026-09-20T10:00:00.000Z",
+    "updatedAt": "2026-10-18T12:00:00.000Z",
+    "tags": ["launch", "marketing"]
+  }
+}

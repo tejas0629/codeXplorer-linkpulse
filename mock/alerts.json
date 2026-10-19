@@ -1,0 +1,25 @@
+{
+  "data": [
+    {
+      "id": "clzlink0000308l8d1e2f303",
+      "code": "summer-sale",
+      "type": "LIMIT_NEARLY_REACHED",
+      "message": "Link has reached 485 of 500 max clicks (97%).",
+      "severity": "WARNING"
+    },
+    {
+      "id": "clzlink0000708l8d1e2f307",
+      "code": "beta-invite",
+      "type": "LIMIT_NEARLY_REACHED",
+      "message": "Link has reached 98 of 100 max clicks (98%).",
+      "severity": "CRITICAL"
+    },
+    {
+      "id": "clzlink0000408l8d1e2f304",
+      "code": "webinar-ai",
+      "type": "EXPIRING_SOON",
+      "message": "Link expires in less than 7 days.",
+      "severity": "INFO"
+    }
+  ]
+}

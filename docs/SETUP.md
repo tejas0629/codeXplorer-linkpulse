@@ -75,6 +75,8 @@ Open `.env` and fill in your values:
 - `UPSTASH_REDIS_REST_URL`: Your Upstash Redis REST URL.
 - `UPSTASH_REDIS_REST_TOKEN`: Your Upstash Redis REST token.
 - `NEXT_PUBLIC_APP_URL`: Set to `http://localhost:3000`.
+- `NEXT_PUBLIC_USE_MOCKS`: Set to "false" (or "true" to serve mock data from mock/ directory).
+
 
 ### Step 8: Apply Migrations and Seed Data
 Apply database migrations to create tables on Supabase:
