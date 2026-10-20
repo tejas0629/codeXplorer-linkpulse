@@ -1,21 +1,32 @@
 // Owner: Milan | Task: MIL-P2-1 | Priority: P2
 import { NextRequest } from "next/server";
-import { fail } from "@/lib/api-response";
+import { requireUser } from "@/lib/rbac";
+import { deleteCampaign, updateCampaign } from "@/lib/campaigns";
+import { ok, toErrorResponse } from "@/lib/api-response";
 
-// TODO (MIL): Update campaign details (owner or admin only)
 export async function PATCH(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  return fail("NOT_IMPLEMENTED", `Task MIL-P2-1: Update campaign '${id}' not implemented`);
+  try {
+    const user = await requireUser();
+    const { id } = await params;
+    const body = await request.json().catch(() => ({}));
+    return ok(await updateCampaign(user, id, body));
+  } catch (err: unknown) {
+    return toErrorResponse(err);
+  }
 }
 
-// TODO (MIL): Delete campaign (owner or admin only)
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  return fail("NOT_IMPLEMENTED", `Task MIL-P2-1: Delete campaign '${id}' not implemented`);
+  try {
+    const user = await requireUser();
+    const { id } = await params;
+    return ok(await deleteCampaign(user, id));
+  } catch (err: unknown) {
+    return toErrorResponse(err);
+  }
 }
