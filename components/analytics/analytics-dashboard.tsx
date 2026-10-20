@@ -1,10 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import mockSummary from "@/mock/analytics-summary.json";
-import mockTimeseries from "@/mock/analytics-timeseries.json";
-import mockBreakdown from "@/mock/analytics-breakdown.json";
-import mockTopLinks from "@/mock/top-links.json";
 import { apiClient } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BotToggle } from "@/components/analytics/bot-toggle";
@@ -26,19 +22,16 @@ interface AnalyticsDashboardProps {
   description?: string;
 }
 
-const fallbackSummary = mockSummary.data as AnalyticsSummary;
-const fallbackBreakdown = mockBreakdown.data as AnalyticsBreakdown;
-const fallbackTimeseries = mockTimeseries.data as TimeseriesPoint[];
-const fallbackTopLinks = mockTopLinks.data as TopLink[];
+const apiPeriods: Record<AnalyticsPeriod, string> = {
+  daily: "7d",
+  weekly: "30d",
+  monthly: "90d",
+};
 
-function aggregateTimeseries(points: TimeseriesPoint[], period: AnalyticsPeriod, includeBots: boolean) {
-  const adjustedPoints = points.map((point, index) => ({
-    ...point,
-    clicks: point.clicks + (includeBots && points.length > 0 ? Math.floor(fallbackSummary.botClicks / points.length) + (index < fallbackSummary.botClicks % points.length ? 1 : 0) : 0),
-  }));
+function aggregateTimeseries(points: TimeseriesPoint[], period: AnalyticsPeriod) {
   const buckets = new Map<string, TimeseriesPoint>();
 
-  for (const point of adjustedPoints) {
+  for (const point of points) {
     const date = new Date(`${point.date}T00:00:00.000Z`);
     let key = point.date;
     if (period === "weekly") {
@@ -74,49 +67,40 @@ export function AnalyticsDashboard({
   const [breakdown, setBreakdown] = useState<AnalyticsBreakdown>();
   const [topLinks, setTopLinks] = useState<TopLink[]>([]);
   const [loadedKey, setLoadedKey] = useState("");
-  const [usingFallback, setUsingFallback] = useState(false);
+  const [loadError, setLoadError] = useState("");
   const requestKey = [period, includeBots, from, to, linkId ?? ""].join("|");
   const loading = loadedKey !== requestKey;
 
   useEffect(() => {
     const controller = new AbortController();
     const params = {
-      period,
+      period: apiPeriods[period],
       from: from ? new Date(`${from}T00:00:00.000Z`).toISOString() : undefined,
       to: to ? new Date(`${to}T23:59:59.999Z`).toISOString() : undefined,
       includeBots,
       linkId,
     };
-    let fallbackUsed = false;
-    async function load<T>(endpoint: string, fallback: T): Promise<{ value: T; usedFallback: boolean }> {
-      try {
-        return { value: await apiClient<T>(endpoint, { params, signal: controller.signal }), usedFallback: false };
-      } catch {
-        if (!controller.signal.aborted) fallbackUsed = true;
-        return { value: fallback, usedFallback: true };
-      }
-    }
-
-    Promise.all([
-      load<AnalyticsSummary>("/api/analytics/summary", fallbackSummary),
-      load<TimeseriesPoint[]>("/api/analytics/timeseries", fallbackTimeseries),
-      load<AnalyticsBreakdown>("/api/analytics/breakdown", fallbackBreakdown),
-      load<TopLink[]>("/api/analytics/top-links", fallbackTopLinks),
+    Promise.allSettled([
+      apiClient<AnalyticsSummary>("/api/analytics/summary", { params, signal: controller.signal }),
+      apiClient<TimeseriesPoint[]>("/api/analytics/timeseries", { params, signal: controller.signal }),
+      apiClient<AnalyticsBreakdown>("/api/analytics/breakdown", { params, signal: controller.signal }),
+      apiClient<TopLink[]>("/api/analytics/top-links", { params, signal: controller.signal }),
     ]).then(([summaryResult, timeseriesResult, breakdownResult, topLinksResult]) => {
       if (controller.signal.aborted) return;
-      const nextSummary = summaryResult.value;
-      const nextTimeseries = timeseriesResult.value;
-      setSummary({
-        ...nextSummary,
-        totalClicks: nextSummary.totalClicks + (summaryResult.usedFallback && includeBots ? nextSummary.botClicks : 0),
-      });
+      setSummary(summaryResult.status === "fulfilled" ? summaryResult.value : undefined);
+      const nextTimeseries = timeseriesResult.status === "fulfilled" ? timeseriesResult.value : [];
       const filteredTimeseries = nextTimeseries.filter((point) =>
         (!from || point.date >= from) && (!to || point.date <= to),
       );
-      setTimeseries(aggregateTimeseries(filteredTimeseries, period, timeseriesResult.usedFallback && includeBots));
-      setBreakdown(breakdownResult.value);
-      setTopLinks(topLinksResult.value);
-      setUsingFallback(fallbackUsed);
+      setTimeseries(aggregateTimeseries(filteredTimeseries, period));
+      setBreakdown(breakdownResult.status === "fulfilled" ? breakdownResult.value : undefined);
+      setTopLinks(topLinksResult.status === "fulfilled" ? topLinksResult.value : []);
+      const endpointNames = ["summary", "timeseries", "breakdown", "top links"];
+      const failedEndpoints = [summaryResult, timeseriesResult, breakdownResult, topLinksResult]
+        .flatMap((result, index) => result.status === "rejected" ? [endpointNames[index]] : []);
+      setLoadError(failedEndpoints.length
+        ? `Unable to load analytics ${failedEndpoints.join(", ")}. Please try again.`
+        : "");
       setLoadedKey(requestKey);
     });
 
@@ -145,11 +129,7 @@ export function AnalyticsDashboard({
         </div>
       </div>
 
-      {usingFallback && !loading && (
-        <p role="status" className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm text-muted-foreground">
-          Some analytics endpoints are unavailable. Sample data is shown for those panels.
-        </p>
-      )}
+      {loadError && !loading && <p role="alert" className="rounded-md border border-destructive/30 px-3 py-2 text-sm text-destructive">{loadError}</p>}
 
       <StatCards data={summary} loading={loading} />
 
