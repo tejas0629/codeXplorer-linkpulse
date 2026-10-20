@@ -49,9 +49,7 @@ export function StepOptions({
           id="expiresAt"
           type="datetime-local"
           value={options.expiresAt}
-          min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-            .toISOString()
-            .slice(0, 16)}
+          min={options.expiresAt || undefined}
           onChange={(event) => update("expiresAt", event.target.value)}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         />
