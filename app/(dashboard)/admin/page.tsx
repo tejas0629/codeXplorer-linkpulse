@@ -1,27 +1,25 @@
-// Owner: Samriddhi | Task: SAM-P2-4 | Priority: P2
-import React from "react";
+// Owner: Samriddhi | Task: SAM-P1-6 | Priority: P1
 import Link from "next/link";
+import { AnalyticsDashboard } from "@/components/analytics/analytics-dashboard";
 
-// TODO (SAM): Admin dashboard overview with platform totals and quick links to admin modules
 export default function AdminPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Admin Portal</h1>
-      <p className="text-sm text-muted-foreground">Manage platform users, links, and domain blocklist.</p>
-      <div className="grid grid-cols-3 gap-4">
-        <Link href="/admin/users" className="rounded-lg border p-4 hover:bg-accent">
+      <AnalyticsDashboard
+        heading="Platform analytics"
+        description="Platform-wide link performance across all accounts."
+      />
+      <nav aria-label="Admin sections" className="flex flex-wrap gap-3 border-t pt-5">
+        <Link href="/admin/users" className="rounded-md border px-3 py-2 text-sm hover:bg-accent">
           <p className="font-semibold">Users</p>
-          <p className="text-xs text-muted-foreground">Manage user accounts</p>
         </Link>
-        <Link href="/admin/links" className="rounded-lg border p-4 hover:bg-accent">
+        <Link href="/admin/links" className="rounded-md border px-3 py-2 text-sm hover:bg-accent">
           <p className="font-semibold">Links</p>
-          <p className="text-xs text-muted-foreground">View and disable links</p>
         </Link>
-        <Link href="/admin/blocklist" className="rounded-lg border p-4 hover:bg-accent">
+        <Link href="/admin/blocklist" className="rounded-md border px-3 py-2 text-sm hover:bg-accent">
           <p className="font-semibold">Blocklist</p>
-          <p className="text-xs text-muted-foreground">Manage blocked domains</p>
         </Link>
-      </div>
+      </nav>
     </div>
   );
 }

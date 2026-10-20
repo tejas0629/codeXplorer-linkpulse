@@ -1,12 +1,11 @@
 // Owner: Samriddhi | Task: SAM-P2-4 | Priority: P2
-import React from "react";
+import { AdminLinksTable } from "@/components/admin/admin-links-table";
 
-// TODO (SAM): Admin links view with disable/enable buttons and quick search
 export default function AdminLinksPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Admin: All Links</h1>
-      <p className="text-sm text-muted-foreground">Placeholder: Platform-wide links table with disable controls.</p>
+      <div><h1 className="text-2xl font-semibold tracking-tight">All links</h1><p className="mt-1 text-sm text-muted-foreground">Search and manage links across the platform.</p></div>
+      <AdminLinksTable />
     </div>
   );
 }

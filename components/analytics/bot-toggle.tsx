@@ -1,18 +1,20 @@
 // Owner: Samriddhi | Task: SAM-P1-4 | Priority: P1
-import React from "react";
-
-// TODO (SAM): Toggle switch to include or exclude bot clicks from analytics data
 export function BotToggle({
   includeBots = false,
-  onToggle: _onToggle,
+  onToggle,
 }: {
   includeBots?: boolean;
-  onToggle?: (val: boolean) => void;
+  onToggle: (value: boolean) => void;
 }) {
   return (
-    <div className="flex items-center space-x-2 text-sm">
-      <span className="text-muted-foreground">Include Bots:</span>
-      <span className="font-mono text-xs">{includeBots ? "ON" : "OFF"}</span>
-    </div>
+    <label className="inline-flex min-h-9 cursor-pointer items-center gap-2 text-sm">
+      <input
+        type="checkbox"
+        checked={includeBots}
+        onChange={(event) => onToggle(event.target.checked)}
+        className="size-4 accent-primary"
+      />
+      <span>Include bot clicks</span>
+    </label>
   );
 }
