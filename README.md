@@ -180,4 +180,4 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming, PR conventions
 Always pull the latest `dev` before starting new feature work.
 
 ## License
-License: TBD by the team.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for the full license text.
