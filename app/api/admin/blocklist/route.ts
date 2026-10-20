@@ -1,13 +1,24 @@
 // Owner: Milan | Task: MIL-P2-5 | Priority: P2
 import { NextRequest } from "next/server";
-import { fail } from "@/lib/api-response";
+import { requireAdmin } from "@/lib/rbac";
+import { addBlockedDomain, listBlockedDomains } from "@/lib/blocklist";
+import { created, ok, toErrorResponse } from "@/lib/api-response";
 
-// TODO (MIL): List all blocked domains (admin only)
-export async function GET(_request: NextRequest) {
-  return fail("NOT_IMPLEMENTED", "Task MIL-P2-5: Admin blocklist list not implemented");
+export async function GET() {
+  try {
+    await requireAdmin();
+    return ok(await listBlockedDomains());
+  } catch (err: unknown) {
+    return toErrorResponse(err);
+  }
 }
 
-// TODO (MIL): Add a domain to the blocklist (admin only)
-export async function POST(_request: NextRequest) {
-  return fail("NOT_IMPLEMENTED", "Task MIL-P2-5: Admin blocklist add not implemented");
+export async function POST(request: NextRequest) {
+  try {
+    const admin = await requireAdmin();
+    const body = await request.json().catch(() => ({}));
+    return created(await addBlockedDomain(admin, body));
+  } catch (err: unknown) {
+    return toErrorResponse(err);
+  }
 }

@@ -1,12 +1,18 @@
 // Owner: Milan | Task: MIL-P1-5 | Priority: P1
 import { NextRequest } from "next/server";
-import { fail } from "@/lib/api-response";
+import { requireAdmin } from "@/lib/rbac";
+import { enableLinkAsAdmin } from "@/lib/admin";
+import { ok, toErrorResponse } from "@/lib/api-response";
 
-// TODO (MIL): Re-enable disabled link (admin only)
 export async function PATCH(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  return fail("NOT_IMPLEMENTED", `Task MIL-P1-5: Admin enable link '${id}' not implemented`);
+  try {
+    await requireAdmin();
+    const { id } = await params;
+    return ok(await enableLinkAsAdmin(id));
+  } catch (err: unknown) {
+    return toErrorResponse(err);
+  }
 }

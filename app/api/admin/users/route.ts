@@ -1,8 +1,15 @@
 // Owner: Milan | Task: MIL-P1-6 | Priority: P1
 import { NextRequest } from "next/server";
-import { fail } from "@/lib/api-response";
+import { requireAdmin } from "@/lib/rbac";
+import { listAdminUsers } from "@/lib/admin";
+import { ok, toErrorResponse } from "@/lib/api-response";
 
-// TODO (MIL): List all platform users with pagination, search, and link counts (admin only)
-export async function GET(_request: NextRequest) {
-  return fail("NOT_IMPLEMENTED", "Task MIL-P1-6: Admin users list not implemented");
+export async function GET(request: NextRequest) {
+  try {
+    await requireAdmin();
+    const { users, meta } = await listAdminUsers(request.nextUrl.searchParams);
+    return ok(users, { meta });
+  } catch (err: unknown) {
+    return toErrorResponse(err);
+  }
 }
