@@ -18,6 +18,9 @@ const envSchema = z.object({
 export type Env = z.infer<typeof envSchema>;
 
 let cachedEnv: Env | null = null;
+let missingProductionVisitorSaltReported = false;
+
+const FALLBACK_VISITOR_SALT = "linkpulse-development-visitor-salt";
 
 export function getEnv(): Env {
   if (cachedEnv) {
@@ -37,4 +40,18 @@ export function getEnv(): Env {
 
   cachedEnv = result.data;
   return cachedEnv;
+}
+
+export function getVisitorSalt(): string {
+  const salt = process.env.VISITOR_SALT;
+  if (salt !== undefined && salt.length >= 16) {
+    return salt;
+  }
+
+  if (process.env.NODE_ENV === "production" && !missingProductionVisitorSaltReported) {
+    console.error("VISITOR_SALT is missing or invalid; using a fallback visitor salt.");
+    missingProductionVisitorSaltReported = true;
+  }
+
+  return FALLBACK_VISITOR_SALT;
 }

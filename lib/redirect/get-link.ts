@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import type { LinkSnapshot } from "./rules";
 
 export type RedirectLink = {
+  id: string;
   snapshot: LinkSnapshot;
   destinationUrl: string;
   mobileUrl: string | null;
@@ -18,6 +19,7 @@ export async function getRedirectLink(code: string): Promise<RedirectLink | null
   }
 
   return {
+    id: link.id,
     snapshot: {
       deletedAt: link.deletedAt,
       status: link.status,
