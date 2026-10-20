@@ -10,12 +10,14 @@ import type { CampaignRecord } from "@/components/campaigns/campaign-form";
 interface CampaignTableProps {
   campaigns: CampaignRecord[];
   loading?: boolean;
+  error?: string;
   onEdit: (campaign: CampaignRecord) => void;
   onDelete: (campaign: CampaignRecord) => void;
 }
 
-export function CampaignTable({ campaigns, loading = false, onEdit, onDelete }: CampaignTableProps) {
+export function CampaignTable({ campaigns, loading = false, error, onEdit, onDelete }: CampaignTableProps) {
   if (loading) return <div className="space-y-3 rounded-lg border p-4" aria-label="Loading campaigns">{[0, 1, 2].map((row) => <div key={row} className="h-12 animate-pulse rounded bg-muted/50" />)}</div>;
+  if (error) return <p role="alert" className="rounded-lg border border-destructive/30 px-4 py-10 text-center text-sm text-destructive">{error}</p>;
   if (campaigns.length === 0) return <div className="rounded-lg border px-4 py-14 text-center"><p className="font-medium">No campaigns yet</p><p className="mt-1 text-sm text-muted-foreground">Create a campaign to group and measure related links.</p></div>;
 
   return (
