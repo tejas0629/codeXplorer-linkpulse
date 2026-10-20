@@ -12,6 +12,7 @@ Content-Type: application/json
 }
 
 ### 2. Create a shortened link with custom alias, password, and click limit
+# Note: Aliases are automatically normalized to lowercase and matched case-insensitively
 POST {{baseUrl}}/api/links
 Content-Type: application/json
 

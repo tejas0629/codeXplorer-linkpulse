@@ -256,6 +256,66 @@ describe("lib/validation.ts", () => {
       }
     });
 
+    it("maps alias errors to fields.alias for reserved word 'api'", () => {
+      try {
+        parseBody(createLinkSchema, {
+          destinationUrl: "https://example.com",
+          alias: "api",
+        });
+        expect.fail("Should have thrown ApiError");
+      } catch (err) {
+        expect(err).toBeInstanceOf(ApiError);
+        const apiErr = err as ApiError;
+        expect(apiErr.status).toBe(400);
+        expect(apiErr.fields?.alias).toContain("reserved system path");
+      }
+    });
+
+    it("maps code errors to fields.alias when code field is passed with reserved word 'api'", () => {
+      try {
+        parseBody(createLinkSchema, {
+          destinationUrl: "https://example.com",
+          code: "api",
+        });
+        expect.fail("Should have thrown ApiError");
+      } catch (err) {
+        expect(err).toBeInstanceOf(ApiError);
+        const apiErr = err as ApiError;
+        expect(apiErr.status).toBe(400);
+        expect(apiErr.fields?.alias).toContain("reserved system path");
+      }
+    });
+
+    it("maps alias errors to fields.alias for too short alias 'ab'", () => {
+      try {
+        parseBody(createLinkSchema, {
+          destinationUrl: "https://example.com",
+          alias: "ab",
+        });
+        expect.fail("Should have thrown ApiError");
+      } catch (err) {
+        expect(err).toBeInstanceOf(ApiError);
+        const apiErr = err as ApiError;
+        expect(apiErr.status).toBe(400);
+        expect(apiErr.fields?.alias).toContain("at least 3 characters");
+      }
+    });
+
+    it("maps alias errors to fields.alias for invalid characters", () => {
+      try {
+        parseBody(createLinkSchema, {
+          destinationUrl: "https://example.com",
+          alias: "bad*alias!",
+        });
+        expect.fail("Should have thrown ApiError");
+      } catch (err) {
+        expect(err).toBeInstanceOf(ApiError);
+        const apiErr = err as ApiError;
+        expect(apiErr.status).toBe(400);
+        expect(apiErr.fields?.alias).toContain("only letters, numbers");
+      }
+    });
+
     it("parseQuery parses URLSearchParams correctly", () => {
       const params = new URLSearchParams("page=2&pageSize=15&status=ACTIVE");
       const parsed = parseQuery(listLinksQuerySchema, params);

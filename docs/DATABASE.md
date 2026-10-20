@@ -124,7 +124,7 @@ The central record representing a shortened URL and its redirect rules.
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | id | String (cuid) | Yes | Primary key |
-| code | String | Yes | Unique public alias or random short code |
+| code | String | Yes | Unique public alias or random short code. Stored in lowercase (normalized on save); aliases are matched case-insensitively |
 | destinationUrl | String | Yes | Target destination URL |
 | ownerId | String | Yes | Foreign key to User. Cascade on delete |
 | campaignId | String | No | Foreign key to Campaign. Set null on delete |

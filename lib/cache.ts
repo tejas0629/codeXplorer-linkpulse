@@ -1,6 +1,6 @@
 // Owner: Tejas | Task: TEJ-P1-8, TEJ-P2-1 | Priority: P1
 import "server-only";
-import type { RuleLinkInput } from "@/lib/rules";
+import type { LinkSnapshot as RuleLinkInput } from "@/lib/redirect/rules";
 
 // TODO (TEJ-P1-8): Implement Redis cache read and set using @upstash/redis
 export async function getCachedLink(code: string): Promise<RuleLinkInput | null> {
