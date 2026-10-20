@@ -10,6 +10,7 @@ import { checkRedirectRules } from "@/lib/redirect/rules";
 import { buildClickEventData } from "@/lib/redirect/click-event-data";
 import { parseUserAgent } from "@/lib/redirect/user-agent";
 import { getVisitorSalt } from "@/lib/env";
+import { resolveUnlockSecret, verifyUnlockCookie } from "@/lib/redirect/unlock-cookie";
 
 function scheduleClickLog(
   request: NextRequest,
@@ -42,11 +43,27 @@ export async function GET(
   { params }: { params: Promise<{ code: string }> }
 ) {
   const { code } = await params;
+  const normalizedCode = code.toLowerCase();
   const userAgent = request.headers.get("user-agent") ?? "";
-  const link = await getRedirectLink(code);
+  const link = await getRedirectLink(normalizedCode);
+  const cookieValue = request.cookies.get(`unlock_${normalizedCode}`)?.value;
+  const secret = resolveUnlockSecret(
+    process.env.AUTH_SECRET,
+    process.env.VISITOR_SALT,
+    process.env.NODE_ENV,
+  );
+  const passwordUnlocked =
+    link?.snapshot.passwordHash !== null && link?.snapshot.passwordHash !== undefined
+      ? verifyUnlockCookie(
+          normalizedCode,
+          link.snapshot.passwordHash,
+          cookieValue,
+          secret,
+        )
+      : false;
   const decision = checkRedirectRules(link?.snapshot ?? null, {
     now: new Date(),
-    passwordUnlocked: false,
+    passwordUnlocked,
   });
 
   switch (decision.kind) {
