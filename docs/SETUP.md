@@ -131,8 +131,17 @@ npm test
    - AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET
    - UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN
    - NEXT_PUBLIC_APP_URL (https://your-production-domain.vercel.app)
+   - CRON_SECRET (optional secret for /api/cron/health-check)
 5. Set the build command to `next build` and deploy from the `main` branch.
 6. Post-deploy check:
    - Visit the production URL and ensure the landing page loads.
    - Test visitor redirection by opening a sample link.
    - Log into the dashboard as Admin and check analytics counts.
+
+## 5. Destination Health Check Cron
+LinkPulse provides a destination health check cron route at `/api/cron/health-check`.
+It requires the header `Authorization: Bearer <CRON_SECRET>`.
+Manual trigger example:
+```bash
+curl -X GET "http://localhost:3000/api/cron/health-check" -H "Authorization: Bearer your-cron-secret"
+```
