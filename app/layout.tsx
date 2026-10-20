@@ -1,10 +1,9 @@
-// Owner: Megha | Task: MEG-P1-1 | Priority: P1
+﻿// Owner: Megha | Task: MEG-P1-1 | Priority: P1
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-// TODO (MEG): Base layout and theme setup, root layout with navbar/sidebar shells
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -18,6 +17,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "LinkPulse",
   description: "URL shortener and analytics platform",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon-32x32.png",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({

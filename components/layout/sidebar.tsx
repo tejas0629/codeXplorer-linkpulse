@@ -1,8 +1,9 @@
-// Owner: Megha | Task: MEG-P1-1 | Priority: P1
+﻿// Owner: Megha | Task: MEG-P1-1 | Priority: P1
 
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 export interface SidebarUser {
@@ -48,9 +49,19 @@ export function Sidebar({ user }: { user?: SidebarUser | null }) {
     <aside className="flex min-h-full w-64 shrink-0 flex-col border-r border-border bg-card p-5">
       <Link
         href="/dashboard"
-        className="mb-8 rounded-md text-xl font-bold tracking-tight text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        className="mb-8 flex items-center gap-2.5 rounded-md text-xl font-bold tracking-tight text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
       >
-        Link<span className="text-blue-600">Pulse</span>
+        <Image
+          src="/logo.png"
+          alt="LinkPulse Logo"
+          width={32}
+          height={32}
+          priority
+          className="size-8 rounded-lg object-contain"
+        />
+        <span>
+          Link<span className="text-blue-600">Pulse</span>
+        </span>
       </Link>
 
       <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -68,7 +79,7 @@ export function Sidebar({ user }: { user?: SidebarUser | null }) {
               aria-current={active ? "page" : undefined}
               className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
                 active
-                  ? "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                  ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
@@ -79,12 +90,10 @@ export function Sidebar({ user }: { user?: SidebarUser | null }) {
       </nav>
 
       {isAdminUser && (
-        <>
-          <div className="my-4 border-t border-border" />
+        <div className="mt-8">
           <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Administration
           </p>
-
           <nav aria-label="Admin navigation" className="flex flex-col gap-1">
             {adminNavigation.map((item) => {
               const active = isItemActive(item.href);
@@ -96,7 +105,7 @@ export function Sidebar({ user }: { user?: SidebarUser | null }) {
                   aria-current={active ? "page" : undefined}
                   className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
                     active
-                      ? "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                      ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
@@ -105,12 +114,8 @@ export function Sidebar({ user }: { user?: SidebarUser | null }) {
               );
             })}
           </nav>
-        </>
+        </div>
       )}
-
-      <div className="mt-auto border-t border-border pt-4 text-xs text-muted-foreground">
-        URL management made simple.
-      </div>
     </aside>
   );
 }
