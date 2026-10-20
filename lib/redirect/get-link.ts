@@ -1,5 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
+import { getCachedLink, setCachedLink } from "@/lib/cache";
+import { getWithCache } from "./link-cache";
 import type { LinkSnapshot } from "./rules";
 
 export type RedirectLink = {
@@ -10,25 +12,32 @@ export type RedirectLink = {
 };
 
 export async function getRedirectLink(code: string): Promise<RedirectLink | null> {
-  const link = await db.link.findUnique({
-    where: { code: code.toLowerCase() },
-  });
+  const normalizedCode = code.toLowerCase();
+  return getWithCache(
+    { get: getCachedLink, set: setCachedLink },
+    normalizedCode,
+    async () => {
+      const link = await db.link.findUnique({
+        where: { code: normalizedCode },
+      });
 
-  if (link === null) {
-    return null;
-  }
+      if (link === null) {
+        return null;
+      }
 
-  return {
-    id: link.id,
-    snapshot: {
-      deletedAt: link.deletedAt,
-      status: link.status,
-      expiresAt: link.expiresAt,
-      maxClicks: link.maxClicks,
-      clickCount: link.clickCount,
-      passwordHash: link.passwordHash,
+      return {
+        id: link.id,
+        snapshot: {
+          deletedAt: link.deletedAt,
+          status: link.status,
+          expiresAt: link.expiresAt,
+          maxClicks: link.maxClicks,
+          clickCount: link.clickCount,
+          passwordHash: link.passwordHash,
+        },
+        destinationUrl: link.destinationUrl,
+        mobileUrl: link.mobileUrl,
+      };
     },
-    destinationUrl: link.destinationUrl,
-    mobileUrl: link.mobileUrl,
-  };
+  );
 }

@@ -10,6 +10,8 @@ import { checkRedirectRules } from "@/lib/redirect/rules";
 import { buildClickEventData } from "@/lib/redirect/click-event-data";
 import { parseUserAgent } from "@/lib/redirect/user-agent";
 import { getVisitorSalt } from "@/lib/env";
+import { resolveUnlockSecret, verifyUnlockCookie } from "@/lib/redirect/unlock-cookie";
+import { selectRedirectDestination } from "@/lib/redirect/destination";
 
 function scheduleClickLog(
   request: NextRequest,
@@ -42,11 +44,27 @@ export async function GET(
   { params }: { params: Promise<{ code: string }> }
 ) {
   const { code } = await params;
+  const normalizedCode = code.toLowerCase();
   const userAgent = request.headers.get("user-agent") ?? "";
-  const link = await getRedirectLink(code);
+  const link = await getRedirectLink(normalizedCode);
+  const cookieValue = request.cookies.get(`unlock_${normalizedCode}`)?.value;
+  const secret = resolveUnlockSecret(
+    process.env.AUTH_SECRET,
+    process.env.VISITOR_SALT,
+    process.env.NODE_ENV,
+  );
+  const passwordUnlocked =
+    link?.snapshot.passwordHash !== null && link?.snapshot.passwordHash !== undefined
+      ? verifyUnlockCookie(
+          normalizedCode,
+          link.snapshot.passwordHash,
+          cookieValue,
+          secret,
+        )
+      : false;
   const decision = checkRedirectRules(link?.snapshot ?? null, {
     now: new Date(),
-    passwordUnlocked: false,
+    passwordUnlocked,
   });
 
   switch (decision.kind) {
@@ -73,6 +91,7 @@ export async function GET(
       }
 
       if (!metadata.isBot) {
+        // Cached clickCount may be stale; this conditional update remains authoritative on every success.
         const countResult = await db.$executeRaw`
           UPDATE "Link"
           SET "clickCount" = "clickCount" + 1
@@ -87,14 +106,11 @@ export async function GET(
       }
 
       scheduleClickLog(request, link.id, "SUCCESS", userAgent);
-      const destinationUrl =
-        metadata.deviceType === "mobile" && link?.mobileUrl
-          ? link.mobileUrl
-          : link?.destinationUrl;
-
-      if (destinationUrl === undefined) {
-        return fail("INTERNAL_ERROR", "Redirect destination unavailable", 500);
-      }
+      const destinationUrl = selectRedirectDestination(
+        metadata.deviceType,
+        link.destinationUrl,
+        link.mobileUrl,
+      );
 
       return NextResponse.redirect(destinationUrl, { status: 302 });
     }

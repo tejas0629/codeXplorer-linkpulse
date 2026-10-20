@@ -13,6 +13,9 @@
     "test:coverage": "vitest run --coverage",
     "postinstall": "prisma generate"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "engines": {
     "node": ">=20.9.0"
   },
@@ -56,6 +59,8 @@
     "eslint-config-next": "16.4.2",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
+    "tsx": "4.23.15",
+    "typescript": "^5"
     "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^3.2.7"
