@@ -28,6 +28,17 @@ Governed URL shortener and live analytics platform built for reliable, safe link
   - [Contributing](#contributing)
   - [License](#license)
 
+## user credentials
+user id- tejasupreti2964@gmail.com
+Password-12345678
+## super admin
+Email -admin@linkpulse.test
+Pass-Demo@1234
+
+
+
+
+
 ## Overview
 Basic URL shorteners only map a code to a URL without rules or governance.
 LinkPulse combines link creation, pre-publish validation, rule evaluation, and live analytics into one workflow.
@@ -181,3 +192,4 @@ Always pull the latest `dev` before starting new feature work.
 
 ## License
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for the full license text.
+
