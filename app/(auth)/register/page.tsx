@@ -1,20 +1,20 @@
-
-"use client";
+﻿"use client";
 
 // Owner: Megha | Task: MEG-P1-3 | Priority: P1
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Eye,
   EyeOff,
-  Link2,
+  Check,
   LoaderCircle,
   LockKeyhole,
   Mail,
-  UserRound,
+  User,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -38,27 +38,12 @@ export default function RegisterPage() {
     const normalizedEmail = email.trim().toLowerCase();
 
     if (!trimmedName || !normalizedEmail || !password || !confirmPassword) {
-      setError("Please fill in all fields.");
+      setError("Please fill out all fields.");
       return;
     }
 
-    if (trimmedName.length > 100) {
-      setError("Name must be 100 characters or fewer.");
-      return;
-    }
-
-    if (normalizedEmail.length > 150) {
-      setError("Email must be 150 characters or fewer.");
-      return;
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-
-    if (password.length < 8 || password.length > 72) {
-      setError("Password must be between 8 and 72 characters.");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long.");
       return;
     }
 
@@ -120,9 +105,14 @@ export default function RegisterPage() {
         {/* Branding panel */}
         <section className="hidden flex-col justify-between bg-primary p-10 text-primary-foreground md:flex">
           <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15">
-              <Link2 className="h-6 w-6" />
-            </span>
+            <Image
+              src="/logo.png"
+              alt="LinkPulse Logo"
+              width={44}
+              height={44}
+              priority
+              className="size-11 rounded-xl object-contain bg-white/15 p-1"
+            />
             <span className="text-2xl font-bold tracking-tight">
               LinkPulse
             </span>
@@ -148,7 +138,7 @@ export default function RegisterPage() {
               ].map((feature) => (
                 <div key={feature} className="flex items-center gap-3">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
-                    ✓
+                    <Check className="h-3.5 w-3.5 text-primary-foreground" />
                   </span>
                   {feature}
                 </div>
@@ -165,45 +155,48 @@ export default function RegisterPage() {
         <section className="p-6 sm:p-10">
           <Link
             href="/"
-            className="mb-8 inline-flex items-center gap-2 font-bold tracking-tight md:hidden"
+            className="mb-8 inline-flex items-center gap-2.5 font-bold tracking-tight md:hidden"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Link2 className="h-5 w-5" />
-            </span>
-            LinkPulse
+            <Image
+              src="/logo.png"
+              alt="LinkPulse Logo"
+              width={36}
+              height={36}
+              priority
+              className="size-9 rounded-lg object-contain"
+            />
+            <span>LinkPulse</span>
           </Link>
 
-          <div className="mb-7">
+          <div className="mb-8">
             <p className="mb-2 text-sm font-medium text-primary">
-              GET STARTED
+              CREATE AN ACCOUNT
             </p>
             <h1 className="text-3xl font-bold tracking-tight">
-              Create your account
+              Get started with LinkPulse
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Join LinkPulse and start managing your links.
+              Create your account to start managing short links and tracking
+              their performance.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="name" className="text-sm font-medium">
                 Full name
               </label>
               <div className="relative">
-                <UserRound className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   id="name"
-                  name="name"
                   type="text"
                   autoComplete="name"
-                  maxLength={100}
-                  placeholder="Enter your full name"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  className={inputClass}
                   required
-                  disabled={loading}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Jane Doe"
+                  className={inputClass}
                 />
               </div>
             </div>
@@ -213,19 +206,16 @@ export default function RegisterPage() {
                 Email address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   id="email"
-                  name="email"
                   type="email"
                   autoComplete="email"
-                  maxLength={150}
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  className={inputClass}
                   required
-                  disabled={loading}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className={inputClass}
                 />
               </div>
             </div>
@@ -235,26 +225,21 @@ export default function RegisterPage() {
                 Password
               </label>
               <div className="relative">
-                <LockKeyhole className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   id="password"
-                  name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
-                  minLength={8}
-                  maxLength={72}
-                  placeholder="Create a password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  className={`${inputClass} pr-12`}
                   required
-                  disabled={loading}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="At least 8 characters"
+                  className={`${inputClass} pr-11`}
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword((value) => !value)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -263,9 +248,6 @@ export default function RegisterPage() {
                   )}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Use between 8 and 72 characters.
-              </p>
             </div>
 
             <div className="space-y-2">
@@ -276,32 +258,21 @@ export default function RegisterPage() {
                 Confirm password
               </label>
               <div className="relative">
-                <LockKeyhole className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   id="confirmPassword"
-                  name="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   autoComplete="new-password"
-                  placeholder="Enter your password again"
-                  value={confirmPassword}
-                  onChange={(event) =>
-                    setConfirmPassword(event.target.value)
-                  }
-                  className={`${inputClass} pr-12`}
                   required
-                  disabled={loading}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repeat your password"
+                  className={`${inputClass} pr-11`}
                 />
                 <button
                   type="button"
-                  onClick={() =>
-                    setShowConfirmPassword((value) => !value)
-                  }
-                  aria-label={
-                    showConfirmPassword
-                      ? "Hide confirm password"
-                      : "Show confirm password"
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showConfirmPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -315,7 +286,7 @@ export default function RegisterPage() {
             {error && (
               <div
                 role="alert"
-                className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"
+                className="rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive"
               >
                 {error}
               </div>
@@ -324,7 +295,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 font-semibold text-primary-foreground shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? (
                 <>
@@ -340,18 +311,14 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          <p className="mt-7 text-center text-sm text-muted-foreground">
+          <p className="mt-8 text-center text-sm text-muted-foreground">
             Already have an account?{" "}
             <Link
               href="/login"
-              className="font-semibold text-primary hover:underline"
+              className="font-medium text-primary hover:underline"
             >
               Sign in
             </Link>
-          </p>
-
-          <p className="mt-8 text-center text-xs leading-5 text-muted-foreground">
-            By creating an account, you agree to use LinkPulse responsibly.
           </p>
         </section>
       </div>

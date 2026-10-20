@@ -1,22 +1,37 @@
-
- // Owner: Megha | Task: MEG-P1-1 | Priority: P1
+﻿// Owner: Megha | Task: MEG-P1-1 | Priority: P1
 
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { Menu, X, LogOut } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { Sidebar } from "@/components/layout/sidebar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/links": "My Links",
   "/links/new": "Create Link",
   "/campaigns": "Campaigns",
-  "/qr": "QR Codes",
   "/import": "CSV Import",
+  "/trace": "Redirect Trace",
+  "/admin": "Admin Overview",
+  "/admin/users": "User Management",
+  "/admin/links": "All Platform Links",
+  "/admin/blocklist": "Domain Blocklist",
 };
 
-export function Navbar() {
+export interface NavbarUser {
+  id?: string | null;
+  name?: string | null;
+  email?: string | null;
+  role?: string | null;
+}
+
+export function Navbar({ user }: { user?: NavbarUser | null }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -27,6 +42,14 @@ export function Navbar() {
   function closeMenu() {
     setMenuOpen(false);
   }
+
+  const initial = (
+    user?.name?.[0] ||
+    user?.email?.[0] ||
+    "U"
+  ).toUpperCase();
+
+  const role = user?.role || "USER";
 
   return (
     <>
@@ -40,64 +63,96 @@ export function Navbar() {
             onClick={() => setMenuOpen((open) => !open)}
             className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:hidden"
           >
-            <span aria-hidden="true" className="text-xl">
-              {menuOpen ? "×" : "☰"}
-            </span>
+            {menuOpen ? (
+              <X className="size-5" aria-hidden="true" />
+            ) : (
+              <Menu className="size-5" aria-hidden="true" />
+            )}
           </button>
 
-          <h1 className="text-lg font-semibold tracking-tight">
-            {pageTitle}
-          </h1>
+          <div className="flex items-center gap-2">
+            <Image
+              src="/logo.png"
+              alt="LinkPulse Logo"
+              width={24}
+              height={24}
+              className="size-6 rounded object-contain md:hidden"
+            />
+            <h1 className="text-lg font-semibold tracking-tight">
+              {pageTitle}
+            </h1>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div
-            aria-label="User profile placeholder"
-            role="img"
-            className="flex size-9 items-center justify-center rounded-full bg-muted text-sm font-semibold text-foreground"
+          <Badge
+            variant={role === "ADMIN" ? "default" : "secondary"}
+            className="hidden text-[11px] font-semibold sm:inline-flex"
           >
-            U
+            {role}
+          </Badge>
+
+          <div className="flex items-center gap-2">
+            <div
+              className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary"
+              aria-label={`User avatar for ${user?.name || user?.email || "User"}`}
+            >
+              {initial}
+            </div>
+            <div className="hidden flex-col text-left text-xs sm:flex">
+              <span className="font-medium text-foreground leading-tight">
+                {user?.name || "User"}
+              </span>
+              <span className="text-muted-foreground leading-tight">
+                {user?.email || ""}
+              </span>
+            </div>
           </div>
 
-          <span className="hidden text-sm text-muted-foreground sm:inline">
-            User
-          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <LogOut className="size-3.5" />
+            <span className="hidden sm:inline">Sign out</span>
+          </Button>
         </div>
       </header>
 
+      {/* Mobile Drawer */}
       {menuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          {/* Backdrop: click outside the menu to close it */}
-          <button
-            type="button"
-            aria-label="Close navigation menu"
+        <div
+          id="mobile-navigation"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation menu"
+          className="fixed inset-0 z-50 flex md:hidden"
+        >
+          <div
+            className="fixed inset-0 bg-black/50"
+            aria-hidden="true"
             onClick={closeMenu}
-            className="absolute inset-0 h-full w-full bg-black/50"
           />
-
-          {/* Mobile navigation drawer */}
-          <aside
-            id="mobile-navigation"
-            aria-label="Mobile navigation"
-            className="absolute inset-y-0 left-0 z-10 flex h-full w-72 max-w-[85vw] flex-col overflow-y-auto border-r border-border bg-background shadow-xl"
-          >
-            <div className="flex h-16 shrink-0 items-center justify-between border-b border-border px-4">
-              <span className="font-semibold">LinkPulse</span>
-
+          <div className="relative flex h-full w-64 max-w-[80vw] flex-col bg-card shadow-xl">
+            <div className="flex h-16 items-center justify-between border-b border-border px-4">
+              <span className="text-lg font-bold">
+                Link<span className="text-blue-600">Pulse</span>
+              </span>
               <button
                 type="button"
                 aria-label="Close navigation menu"
                 onClick={closeMenu}
-                className="inline-flex min-h-11 items-center justify-center rounded-md px-3 py-2 text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
               >
-                Close
+                <X className="size-5" />
               </button>
             </div>
-
-            <div onClick={closeMenu}>
-              <Sidebar />
+            <div className="flex-1 overflow-y-auto" onClick={closeMenu}>
+              <Sidebar user={user} />
             </div>
-          </aside>
+          </div>
         </div>
       )}
     </>

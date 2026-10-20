@@ -1,16 +1,16 @@
-
-"use client";
+﻿"use client";
 
 // Owner: Megha | Task: MEG-P1-3 | Priority: P1
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Eye,
   EyeOff,
-  Link2,
+  Check,
   LoaderCircle,
   LockKeyhole,
   Mail,
@@ -38,11 +38,6 @@ export default function LoginPage() {
       return;
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -52,30 +47,34 @@ export default function LoginPage() {
         redirect: false,
       });
 
-      if (result?.error) {
-        setError("Invalid email or password. Please try again.");
+      if (!result) {
+        setError("Unable to sign in. Please try again.");
         return;
       }
 
-      if (result?.ok) {
-        toast.success("Signed in successfully!");
-        router.push("/dashboard");
-        router.refresh();
+      if (result.error) {
+        setError("Invalid email or password.");
         return;
       }
 
-      setError("Unable to sign in. Please try again.");
+      toast.success("Welcome back!");
+      router.push("/dashboard");
+      router.refresh();
     } catch {
       setError(
-        "Unable to sign in right now. Please try again when authentication is available.",
+        "Unable to connect to the authentication server. Please check your connection and try again.",
       );
     } finally {
       setLoading(false);
     }
   }
 
+  const inputClass =
+    "w-full rounded-xl border border-input bg-background py-3 pl-11 pr-4 text-sm outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20";
+
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
+      {/* Decorative background */}
       <div className="pointer-events-none absolute -left-32 -top-32 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-32 -right-32 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl" />
 
@@ -83,9 +82,14 @@ export default function LoginPage() {
         {/* Branding panel */}
         <section className="hidden flex-col justify-between bg-primary p-10 text-primary-foreground md:flex">
           <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15">
-              <Link2 className="h-6 w-6" />
-            </span>
+            <Image
+              src="/logo.png"
+              alt="LinkPulse Logo"
+              width={44}
+              height={44}
+              priority
+              className="size-11 rounded-xl object-contain bg-white/15 p-1"
+            />
             <span className="text-2xl font-bold tracking-tight">
               LinkPulse
             </span>
@@ -113,7 +117,7 @@ export default function LoginPage() {
               ].map((feature) => (
                 <div key={feature} className="flex items-center gap-3">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
-                    ✓
+                    <Check className="h-3.5 w-3.5 text-primary-foreground" />
                   </span>
                   {feature}
                 </div>
@@ -130,12 +134,17 @@ export default function LoginPage() {
         <section className="p-6 sm:p-10">
           <Link
             href="/"
-            className="mb-8 inline-flex items-center gap-2 font-bold tracking-tight md:hidden"
+            className="mb-8 inline-flex items-center gap-2.5 font-bold tracking-tight md:hidden"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Link2 className="h-5 w-5" />
-            </span>
-            LinkPulse
+            <Image
+              src="/logo.png"
+              alt="LinkPulse Logo"
+              width={36}
+              height={36}
+              priority
+              className="size-9 rounded-lg object-contain"
+            />
+            <span>LinkPulse</span>
           </Link>
 
           <div className="mb-8">
@@ -159,50 +168,44 @@ export default function LoginPage() {
               </label>
 
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
+                <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   id="email"
-                  name="email"
                   type="email"
                   autoComplete="email"
-                  maxLength={150}
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  className="w-full rounded-xl border border-input bg-background py-3 pl-11 pr-4 text-sm outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
                   required
-                  disabled={loading}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className={inputClass}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
-                Password
-              </label>
+              <div className="flex items-center justify-between text-sm">
+                <label htmlFor="password" className="font-medium">
+                  Password
+                </label>
+              </div>
 
               <div className="relative">
-                <LockKeyhole className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
+                <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   id="password"
-                  name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  className="w-full rounded-xl border border-input bg-background py-3 pl-11 pr-12 text-sm outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
                   required
-                  disabled={loading}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className={`${inputClass} pr-11`}
                 />
 
                 <button
                   type="button"
-                  onClick={() => setShowPassword((value) => !value)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -216,7 +219,7 @@ export default function LoginPage() {
             {error && (
               <div
                 role="alert"
-                className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"
+                className="rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive"
               >
                 {error}
               </div>
@@ -225,7 +228,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 font-semibold text-primary-foreground shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? (
                 <>
@@ -241,18 +244,14 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="mt-7 text-center text-sm text-muted-foreground">
+          <p className="mt-8 text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
             <Link
               href="/register"
-              className="font-semibold text-primary hover:underline"
+              className="font-medium text-primary hover:underline"
             >
-              Create account
+              Create one now
             </Link>
-          </p>
-
-          <p className="mt-8 text-center text-xs leading-5 text-muted-foreground">
-            Simple links. Clear insights.
           </p>
         </section>
       </div>

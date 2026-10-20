@@ -1,10 +1,9 @@
-
 "use client";
 
 // Owner: Megha | Task: MEG-P1-4 | Priority: P1
 
 import { useEffect, useState } from "react";
-import { apiClient } from "@/lib/api";
+import { apiClient, ApiClientError } from "@/lib/api";
 import {
   StepOptions,
   type LinkOptions,
@@ -24,7 +23,8 @@ interface LinkCheckResult {
   aliasAvailable: boolean;
   urlValid: boolean;
   domainBlocked: boolean;
-  riskScore: string;
+  risk?: "LOW" | "MEDIUM" | "HIGH";
+  riskScore?: "LOW" | "MEDIUM" | "HIGH" | string;
   warnings: string[];
 }
 
@@ -36,6 +36,7 @@ interface CreatedLink {
 
 interface CreateLinkPayload {
   destinationUrl: string;
+  alias?: string;
   code?: string;
   campaignId?: string;
   expiresAt?: string;
@@ -64,6 +65,7 @@ export default function NewLinkPage() {
 
   const [checkStatus, setCheckStatus] = useState<CheckStatus>("idle");
   const [checkMessage, setCheckMessage] = useState("");
+  const [risk, setRisk] = useState<"LOW" | "MEDIUM" | "HIGH" | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [shortUrl, setShortUrl] = useState("");
@@ -105,6 +107,11 @@ export default function NewLinkPage() {
 
         if (cancelled) {
           return;
+        }
+
+        const score = (result.risk || result.riskScore) as "LOW" | "MEDIUM" | "HIGH" | undefined;
+        if (score === "LOW" || score === "MEDIUM" || score === "HIGH") {
+          setRisk(score);
         }
 
         if (!result.urlValid || result.domainBlocked) {
@@ -278,7 +285,7 @@ export default function NewLinkPage() {
 
     const payload: CreateLinkPayload = {
       destinationUrl: parsedUrl.toString(),
-      ...(trimmedCode ? { code: trimmedCode } : {}),
+      ...(trimmedCode ? { alias: trimmedCode, code: trimmedCode } : {}),
       ...(campaignId ? { campaignId } : {}),
       ...(expiresAt ? { expiresAt } : {}),
       ...(maxClicks !== undefined ? { maxClicks } : {}),
@@ -297,39 +304,51 @@ export default function NewLinkPage() {
 
       const confirmedCode = created.code?.trim();
 
-if (created.shortUrl?.trim()) {
-  setShortUrl(created.shortUrl.trim());
-} else if (confirmedCode) {
-  // Build the URL only from a code confirmed by the server.
-  setShortUrl(
-    `${window.location.origin}/${encodeURIComponent(confirmedCode)}`
-  );
-} else {
-  setErrorMessage(
-    "The server response did not contain a confirmed short URL or link code. No success was reported."
-  );
-  return;
-}
+      if (created.shortUrl?.trim()) {
+        setShortUrl(created.shortUrl.trim());
+      } else if (confirmedCode) {
+        setShortUrl(
+          `${window.location.origin}/${encodeURIComponent(confirmedCode)}`
+        );
+      } else {
+        setErrorMessage(
+          "The server response did not contain a confirmed short URL or link code. No success was reported."
+        );
+        return;
+      }
 
-setStep(3);
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Unable to create the link. Please try again."
-      );
+      setStep(3);
+    } catch (err) {
+      if (err instanceof ApiClientError && err.fields?.alias) {
+        setCheckStatus("taken");
+        setCheckMessage(err.fields.alias);
+        setErrorMessage(err.fields.alias);
+        setStep(1);
+      } else if (err instanceof ApiClientError && err.fields?.destinationUrl) {
+        setCheckStatus("invalid");
+        setCheckMessage(err.fields.destinationUrl);
+        setErrorMessage(err.fields.destinationUrl);
+        setStep(1);
+      } else {
+        setErrorMessage(
+          err instanceof Error
+            ? err.message
+            : "We were unable to create your link. Please check your details and try again."
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  function createAnother() {
+  function resetWizard() {
     setStep(1);
     setDestinationUrl("");
     setCode("");
-    setOptions({ ...initialOptions });
+    setOptions(initialOptions);
     setCheckStatus("idle");
     setCheckMessage("");
+    setRisk(undefined);
     setErrorMessage("");
     setShortUrl("");
   }
@@ -337,74 +356,50 @@ setStep(3);
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Create New Link</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Create a short link</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Create and configure a short link in a few steps.
+          Shorten a URL, customize the alias, and set up optional rules.
         </p>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 text-sm">
-        {[1, 2, 3].map((number) => (
-          <div
-            key={number}
-            aria-current={step === number ? "step" : undefined}
-            className={`rounded-full px-3 py-1 ${
-              step === number
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground"
-            }`}
-          >
-            {number === 1
-              ? "1. Destination"
-              : number === 2
-                ? "2. Options"
-                : "3. Complete"}
-          </div>
-        ))}
       </div>
 
       {errorMessage && (
         <div
           role="alert"
-          className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+          className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
         >
           {errorMessage}
         </div>
       )}
 
-      <div className="rounded-lg border border-border p-5">
-        {step === 1 && (
-          <StepDestination
-            destinationUrl={destinationUrl}
-            code={code}
-            onDestinationUrlChange={handleDestinationUrlChange}
-            onCodeChange={handleCodeChange}
-            onContinue={continueToOptions}
-            checkStatus={checkStatus}
-            checkMessage={checkMessage}
-          />
-        )}
+      {step === 1 && (
+        <StepDestination
+          destinationUrl={destinationUrl}
+          code={code}
+          onDestinationUrlChange={handleDestinationUrlChange}
+          onCodeChange={handleCodeChange}
+          onContinue={continueToOptions}
+          checkStatus={checkStatus}
+          checkMessage={checkMessage}
+          risk={risk}
+        />
+      )}
 
-        {step === 2 && (
-          <StepOptions
-            options={options}
-            onChange={setOptions}
-            onBack={() => {
-              setErrorMessage("");
-              setStep(1);
-            }}
-            onSubmit={createLink}
-            isSubmitting={isSubmitting}
-          />
-        )}
+      {step === 2 && (
+        <StepOptions
+          options={options}
+          onChange={setOptions}
+          onBack={() => setStep(1)}
+          onSubmit={createLink}
+          isSubmitting={isSubmitting}
+        />
+      )}
 
-        {step === 3 && (
-          <SuccessScreen
-            shortUrl={shortUrl}
-            onCreateAnother={createAnother}
-          />
-        )}
-      </div>
+      {step === 3 && (
+        <SuccessScreen
+          shortUrl={shortUrl}
+          onCreateAnother={resetWizard}
+        />
+      )}
     </div>
   );
 }

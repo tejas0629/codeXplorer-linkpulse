@@ -4,7 +4,18 @@ export interface ApiFetchOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
 }
 
-// TODO (MEG-P1-2): Unified API fetch client with error handling and mock data switching
+export class ApiClientError extends Error {
+  code?: string;
+  fields?: Record<string, string>;
+
+  constructor(message: string, code?: string, fields?: Record<string, string>) {
+    super(message);
+    this.name = "ApiClientError";
+    this.code = code;
+    this.fields = fields;
+  }
+}
+
 export async function apiClient<T>(endpoint: string, options: ApiFetchOptions = {}): Promise<T> {
   const { params, headers, ...rest } = options;
 
@@ -30,9 +41,13 @@ export async function apiClient<T>(endpoint: string, options: ApiFetchOptions = 
     ...rest,
   });
 
-  const body = await response.json();
+  const body = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(body?.error?.message || "An API error occurred");
+    throw new ApiClientError(
+      body?.error?.message || "An API error occurred",
+      body?.error?.code,
+      body?.error?.fields
+    );
   }
 
   return body.data as T;
