@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
-import mockCampaigns from "@/mock/campaigns.json";
 import { apiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -11,12 +10,10 @@ import { CampaignForm, type CampaignRecord } from "@/components/campaigns/campai
 import { CampaignTable } from "@/components/campaigns/campaign-table";
 import { CampaignHighlights } from "@/components/campaigns/campaign-highlights";
 
-const fallbackCampaigns = mockCampaigns.data as CampaignRecord[];
-
 export function CampaignsManager() {
   const [campaigns, setCampaigns] = useState<CampaignRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [usingFallback, setUsingFallback] = useState(false);
+  const [loadError, setLoadError] = useState("");
   const [error, setError] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<CampaignRecord>();
@@ -25,9 +22,9 @@ export function CampaignsManager() {
   useEffect(() => {
     let active = true;
     apiClient<CampaignRecord[]>("/api/campaigns").then((data) => {
-      if (active) { setCampaigns(data); setUsingFallback(false); }
-    }).catch(() => {
-      if (active) { setCampaigns(fallbackCampaigns); setUsingFallback(true); }
+      if (active) setCampaigns(data);
+    }).catch((cause: unknown) => {
+      if (active) setLoadError(cause instanceof Error ? cause.message : "Campaigns could not be loaded.");
     }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
@@ -49,18 +46,10 @@ export function CampaignsManager() {
       setCampaigns((current) => editing
         ? current.map((item) => item.id === editing.id ? { ...item, ...saved, ...values } : item)
         : [{ ...saved, ...values, totalLinks: 0, totalClicks: 0 }, ...current]);
-      setUsingFallback(false);
+      setLoadError("");
       setDialogOpen(false);
     } catch (cause) {
-      if (!usingFallback) {
-        setError(cause instanceof Error ? cause.message : "Campaign could not be saved.");
-        return;
-      }
-      setCampaigns((current) => editing
-        ? current.map((item) => item.id === editing.id ? { ...item, ...values } : item)
-        : [{ id: `local-${Date.now()}`, ...values, totalLinks: 0, totalClicks: 0 }, ...current]);
-      setError("API unavailable. Changes are local to this page and have not been saved to the server.");
-      setDialogOpen(false);
+      setError(cause instanceof Error ? cause.message : "Campaign could not be saved.");
     } finally {
       setSaving(false);
     }
@@ -72,13 +61,9 @@ export function CampaignsManager() {
     try {
       await apiClient(`/api/campaigns/${encodeURIComponent(campaign.id)}`, { method: "DELETE" });
       setCampaigns((current) => current.filter((item) => item.id !== campaign.id));
+      setLoadError("");
     } catch (cause) {
-      if (usingFallback || campaign.id.startsWith("local-")) {
-        setCampaigns((current) => current.filter((item) => item.id !== campaign.id));
-        setError("API unavailable. Campaign was removed from this page only.");
-      } else {
-        setError(cause instanceof Error ? cause.message : "Campaign could not be deleted.");
-      }
+      setError(cause instanceof Error ? cause.message : "Campaign could not be deleted.");
     }
   }
 
@@ -88,9 +73,8 @@ export function CampaignsManager() {
         <div><h1 className="text-2xl font-semibold tracking-tight">Campaigns</h1><p className="mt-1 text-sm text-muted-foreground">Group links and compare campaign performance.</p></div>
         <Button onClick={() => openForm()}><Plus aria-hidden="true" />New campaign</Button>
       </div>
-      {usingFallback && !loading && <p role="status" className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm text-muted-foreground">Campaign API unavailable. Sample campaigns are shown.</p>}
       {error && <p role="alert" className="rounded-md border border-destructive/30 px-3 py-2 text-sm text-destructive">{error}</p>}
-      <CampaignTable campaigns={campaigns} loading={loading} onEdit={openForm} onDelete={remove} />
+      <CampaignTable campaigns={campaigns} loading={loading} error={loadError} onEdit={openForm} onDelete={remove} />
       <CampaignHighlights />
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
