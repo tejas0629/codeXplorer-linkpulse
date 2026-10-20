@@ -1,8 +1,19 @@
 // Owner: Chirag | Task: CHI-P1-8 | Priority: P1
 import { NextRequest } from "next/server";
-import { fail } from "@/lib/api-response";
+import { requireUser } from "@/lib/links-auth";
+import { parseQuery } from "@/lib/validation";
+import { analyticsQuerySchema } from "@/lib/analytics-schema";
+import { getAnalyticsBreakdown } from "@/lib/analytics";
+import { ok, toErrorResponse } from "@/lib/api-response";
 
-// TODO (CHI): Analytics breakdown by device type, browser, and referrer
-export async function GET(_request: NextRequest) {
-  return fail("NOT_IMPLEMENTED", "Task CHI-P1-8: Analytics breakdown not implemented");
+export async function GET(request: NextRequest) {
+  try {
+    const user = await requireUser();
+    const query = parseQuery(analyticsQuerySchema, request.nextUrl.searchParams);
+    const scope = { userId: user.id, isAdmin: user.role === "ADMIN" };
+    const data = await getAnalyticsBreakdown({ scope, ...query });
+    return ok(data);
+  } catch (err: unknown) {
+    return toErrorResponse(err);
+  }
 }

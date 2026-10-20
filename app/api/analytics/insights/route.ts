@@ -1,8 +1,19 @@
 // Owner: Chirag | Task: CHI-P2-4 | Priority: P2
 import { NextRequest } from "next/server";
-import { fail } from "@/lib/api-response";
+import { requireUser } from "@/lib/links-auth";
+import { parseQuery } from "@/lib/validation";
+import { analyticsQuerySchema } from "@/lib/analytics-schema";
+import { getAnalyticsInsights } from "@/lib/analytics";
+import { ok, toErrorResponse } from "@/lib/api-response";
 
-// TODO (CHI): Plain-English insights generated from real click data
-export async function GET(_request: NextRequest) {
-  return fail("NOT_IMPLEMENTED", "Task CHI-P2-4: Analytics insights not implemented");
+export async function GET(request: NextRequest) {
+  try {
+    const user = await requireUser();
+    const query = parseQuery(analyticsQuerySchema, request.nextUrl.searchParams);
+    const scope = { userId: user.id, isAdmin: user.role === "ADMIN" };
+    const data = await getAnalyticsInsights({ scope, ...query });
+    return ok(data);
+  } catch (err: unknown) {
+    return toErrorResponse(err);
+  }
 }
