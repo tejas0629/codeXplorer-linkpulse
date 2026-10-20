@@ -1,30 +1,58 @@
 // Owner: Chirag | Task: CHI-P1-5 | Priority: P1
 import { NextRequest } from "next/server";
-import { fail } from "@/lib/api-response";
+import { requireUser } from "@/lib/links-auth";
+import { getLink, updateLink, softDeleteLink } from "@/lib/links";
+import { ok, toErrorResponse } from "@/lib/api-response";
+import { RateLimitError } from "@/lib/rate-limit";
 
-// TODO (CHI): Read single link details (owner or admin only)
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  return fail("NOT_IMPLEMENTED", `Task CHI-P1-5: Read link '${id}' not implemented`);
+  try {
+    const user = await requireUser();
+    const { id } = await params;
+    const link = await getLink(user, id);
+    return ok(link);
+  } catch (err: unknown) {
+    if (err instanceof RateLimitError) {
+      return err.toResponse();
+    }
+    return toErrorResponse(err);
+  }
 }
 
-// TODO (CHI): Update link properties and rules (owner or admin only)
 export async function PATCH(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  return fail("NOT_IMPLEMENTED", `Task CHI-P1-5: Update link '${id}' not implemented`);
+  try {
+    const user = await requireUser();
+    const { id } = await params;
+    const body = await request.json().catch(() => ({}));
+    const updated = await updateLink(user, id, body);
+    return ok(updated);
+  } catch (err: unknown) {
+    if (err instanceof RateLimitError) {
+      return err.toResponse();
+    }
+    return toErrorResponse(err);
+  }
 }
 
-// TODO (CHI): Soft/hard delete link (owner or admin only)
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  return fail("NOT_IMPLEMENTED", `Task CHI-P1-5: Delete link '${id}' not implemented`);
+  try {
+    const user = await requireUser();
+    const { id } = await params;
+    const result = await softDeleteLink(user, id);
+    return ok(result);
+  } catch (err: unknown) {
+    if (err instanceof RateLimitError) {
+      return err.toResponse();
+    }
+    return toErrorResponse(err);
+  }
 }

@@ -24,7 +24,7 @@ Checkpoints are shared moments when `dev` must be in a certain state. They are a
 
 | Checkpoint | What must be true on `dev` |
 |---|---|
-| CP1 Foundation | Dependencies installed, folder skeleton pushed, Prisma schema migrated, `lib/api-response.ts`, `lib/rbac.ts` signatures and `lib/rules.ts` signature committed, `docs/API.md` and `.env.example` present, mock data available. |
+| CP1 Foundation | Dependencies installed, folder skeleton pushed, Prisma schema migrated, `lib/api-response.ts`, `lib/rbac.ts` signatures and `lib/redirect/rules.ts` signature committed, `docs/API.md` and `.env.example` present, mock data available. |
 | CP2 Core live | A user can sign in, create a link, a visitor is redirected, the click is saved, the dashboard shows basic numbers. Deployed on Vercel. |
 | CP3 Rules and organization | Expiry, click cap, password, admin disable, campaigns, tags, bot filter work end to end. |
 | CP4 Integration | QR, CSV import, analytics pages use real APIs, seed data loaded, no page uses mock data any more. |
@@ -35,7 +35,7 @@ Checkpoints are shared moments when `dev` must be in a certain state. They are a
 | Folder or file | Owner |
 |---|---|
 | `prisma/schema.prisma`, `prisma/migrations/`, `prisma/seed.ts`, `package.json`, `.github/`, `app/[code]/`, `app/api/unlock/`, `app/api/trace/`, `lib/db.ts`, `lib/api-response.ts`, `lib/cache.ts`, `lib/click-logger.ts`, `lib/bot.ts`, `lib/env.ts`, deployment settings | Tejas |
-| `app/api/links/`, `app/api/analytics/`, `lib/shortcode.ts`, `lib/validation.ts`, `lib/rules.ts`, `lib/rate-limit.ts`, `lib/analytics.ts`, `lib/risk.ts`, `types/api.ts` | Chirag |
+| `app/api/links/`, `app/api/analytics/`, `lib/shortcode.ts`, `lib/validation.ts`, `lib/rate-limit.ts`, `lib/analytics.ts`, `lib/risk.ts`, `types/api.ts` | Chirag |
 | `proxy.ts`, `app/api/auth/`, `app/api/campaigns/`, `app/api/tags/`, `app/api/import/`, `app/api/qr/`, `app/api/admin/`, `lib/auth.ts`, `lib/rbac.ts`, `lib/csv.ts`, `lib/qr.ts`, `types/next-auth.d.ts` | Milan |
 | `app/layout.tsx`, `app/globals.css`, `app/page.tsx`, `app/(auth)/`, `app/(dashboard)/layout.tsx`, `app/(dashboard)/links/`, `app/(public)/`, `components/layout/`, `components/shared/`, `components/wizard/`, `components/links/`, `components/ui/`, `lib/api.ts`, `lib/utils.ts` | Megha |
 | `app/(dashboard)/dashboard/`, `app/(dashboard)/campaigns/`, `app/(dashboard)/import/`, `app/(dashboard)/trace/`, `app/(dashboard)/admin/`, `components/charts/`, `components/analytics/`, `components/campaigns/`, `components/csv/`, `components/qr/`, `components/admin/` | Samriddhi |
@@ -80,7 +80,7 @@ Branches: `feature/chi-link-creation-rules`, `feature/chi-analytics-api`. Focus:
 |---|---|---|---|---|
 | CHI-P1-1 | Short code and alias rules | `lib/shortcode.ts`: random code generation with retry on collision, alias rules (length, allowed characters, reserved words) | Codes are unique, bad aliases are rejected with a clear message | S |
 | CHI-P1-2 | Input validation | `lib/validation.ts` with Zod schemas for create and update link, URL checks (http or https only, length, not our own domain, not a blocked domain) | Invalid input returns 400 with a field-level message | M |
-| CHI-P1-3 | Rule evaluation function | `lib/rules.ts` pure function that returns a result for a link in the fixed order, with unit tests. Signature agreed at CP1 | Tejas uses it in the redirect engine, tests pass | M |
+| CHI-P1-3 | Rule evaluation function | `lib/redirect/rules.ts` (CHI-P1-3 note: delivered as the redirect engine's rules by the team lead) pure function that returns a result for a link in the fixed order, with unit tests. Signature agreed at CP1 | Tejas uses it in the redirect engine, tests pass | M |
 | CHI-P1-4 | Create and list links | `POST /api/links`, `GET /api/links` (own links for User, all for Admin, with search and status filter) | A signed-in user can create and list links, link password is stored hashed | L |
 | CHI-P1-5 | Read, update, delete link | `GET`, `PATCH`, `DELETE /api/links/[id]`, enable or disable | Only owner or admin can change a link; DELETE performs soft delete; owner cannot re-enable ADMIN_DISABLED link | M |
 | CHI-P1-6 | Live check endpoint | `GET /api/links/check?alias=&url=` returns alias taken, invalid URL, blocked domain | The wizard can show warnings before publishing | S |
@@ -194,7 +194,7 @@ A task is done only when all of these are true:
 |---|---|---|---|
 | Tejas | Everyone | Foundation, schema, shared helpers, mock data | CP1 |
 | Milan | Everyone | `lib/rbac.ts` signatures | CP1 |
-| Chirag | Tejas | `lib/rules.ts` signature first, working version later | CP1 signature, CP2 working |
+| Chirag | Tejas | `lib/redirect/rules.ts` signature first, working version later (CHI-P1-3 note: delivered as the redirect engine's rules by the team lead) | CP1 signature, CP2 working |
 | Chirag | Megha | Check endpoint shape in `docs/API.md` | CP1 |
 | Chirag | Samriddhi | Analytics response shapes in `docs/API.md`, real endpoints later | CP1 shapes, CP4 real |
 | Megha | Tejas | Paths of the visitor status and password pages | CP1 |

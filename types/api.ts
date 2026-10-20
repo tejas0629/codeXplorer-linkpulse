@@ -5,6 +5,7 @@ export interface PaginationMeta {
   page: number;
   pageSize: number;
   total: number;
+  totalPages: number;
 }
 
 export interface ApiSuccess<T> {
@@ -139,8 +140,11 @@ export interface CheckLinkResponse {
   aliasAvailable: boolean;
   urlValid: boolean;
   domainBlocked: boolean;
-  riskScore: "LOW" | "MEDIUM" | "HIGH";
-  warnings: string[];
+  riskScore?: "LOW" | "MEDIUM" | "HIGH";
+  warnings?: string[];
+  aliasError?: string;
+  urlError?: string;
+  risk?: "LOW" | "MEDIUM" | "HIGH";
 }
 
 // Analytics

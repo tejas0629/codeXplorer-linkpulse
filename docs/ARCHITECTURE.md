@@ -113,4 +113,4 @@ flowchart TD
 - Mock data switch: Setting NEXT_PUBLIC_USE_MOCKS to true enables the frontend to read JSON fixtures from mock/ without live APIs or databases.
 
 ## 6. Where Business Logic Lives
-All core business logic resides exclusively in lib/. Route handlers in app/api/ act solely as transport adapters: they parse parameters, call lib/rbac.ts for permission checks, run lib/validation.ts, execute domain functions in lib/rules.ts or lib/analytics.ts, and serialize output via lib/api-response.ts.
+All core business logic resides exclusively in lib/. Route handlers in app/api/ act solely as transport adapters: they parse parameters, call lib/rbac.ts for permission checks, run lib/validation.ts, execute domain functions in lib/redirect/rules.ts or lib/analytics.ts, and serialize output via lib/api-response.ts.
