@@ -35,7 +35,12 @@ export function StepDestination({
       code.trim().length >= 3 &&
       code.trim().length <= 64);
 
-  const canContinue = urlIsValid && codeIsValid;
+  const canContinue =
+  urlIsValid &&
+  codeIsValid &&
+  checkStatus !== "checking" &&
+  checkStatus !== "taken" &&
+  checkStatus !== "invalid";
 
   return (
     <section className="space-y-5">
