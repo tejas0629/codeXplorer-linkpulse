@@ -1,0 +1,5 @@
+destinationUrl,code
+https://example.com/launch,launch-demo
+not-a-valid-url,bad-url
+https://example.com/duplicate,launch-demo
+https://example.com/seasonal,seasonal-demo
