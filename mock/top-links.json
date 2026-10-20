@@ -1,0 +1,39 @@
+{
+  "data": [
+    {
+      "id": "clzlink0000108l8d1e2f301",
+      "code": "launch-2026",
+      "destinationUrl": "https://company.org/product-launch",
+      "clicks": 420,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "clzlink0000308l8d1e2f303",
+      "code": "summer-sale",
+      "destinationUrl": "https://company.org/deals/summer",
+      "clicks": 485,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "clzlink0000208l8d1e2f302",
+      "code": "dev-docs",
+      "destinationUrl": "https://docs.linkpulse.dev/v1",
+      "clicks": 310,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "clzlink0000608l8d1e2f306",
+      "code": "podcast-ep12",
+      "destinationUrl": "https://podcast.company.org/episodes/12",
+      "clicks": 240,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "clzlink0000908l8d1e2f309",
+      "code": "press-release",
+      "destinationUrl": "https://company.org/news/oct-announcement",
+      "clicks": 190,
+      "status": "ACTIVE"
+    }
+  ]
+}

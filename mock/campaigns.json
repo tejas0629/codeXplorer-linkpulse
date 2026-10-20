@@ -1,0 +1,40 @@
+{
+  "data": [
+    {
+      "id": "clzcamp000108l8a1b2c3d1",
+      "name": "Q4 Product Launch",
+      "description": "Marketing campaigns for new platform release",
+      "totalLinks": 3,
+      "totalClicks": 628,
+      "topLinkCode": "launch-2026",
+      "createdAt": "2026-09-20T10:00:00.000Z"
+    },
+    {
+      "id": "clzcamp000208l8a1b2c3d2",
+      "name": "Developer Community",
+      "description": "API references, docs, and SDK distribution",
+      "totalLinks": 1,
+      "totalClicks": 310,
+      "topLinkCode": "dev-docs",
+      "createdAt": "2026-09-22T11:00:00.000Z"
+    },
+    {
+      "id": "clzcamp000308l8a1b2c3d3",
+      "name": "Seasonal Promotions",
+      "description": "Flash sales and promotional discount links",
+      "totalLinks": 1,
+      "totalClicks": 485,
+      "topLinkCode": "summer-sale",
+      "createdAt": "2026-09-25T14:30:00.000Z"
+    },
+    {
+      "id": "clzcamp000408l8a1b2c3d4",
+      "name": "Customer Feedback",
+      "description": "Customer sentiment and survey links",
+      "totalLinks": 1,
+      "totalClicks": 85,
+      "topLinkCode": "q4-survey",
+      "createdAt": "2026-10-03T16:00:00.000Z"
+    }
+  ]
+}

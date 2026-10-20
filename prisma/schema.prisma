@@ -1,0 +1,208 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Enums
+enum Role {
+  USER
+  ADMIN
+}
+
+enum LinkStatus {
+  ACTIVE
+  DISABLED // disabled by the owner
+  ADMIN_DISABLED // disabled by an admin, only an admin can re-enable
+}
+
+enum ClickSource {
+  LINK
+  QR
+}
+
+enum ClickResult {
+  SUCCESS
+  DISABLED
+  EXPIRED
+  LIMIT_REACHED
+  PASSWORD_FAILED
+}
+
+// User model
+// Handles both credentials auth and OAuth accounts.
+// Roles: USER (default) and ADMIN.
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  image         String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  links          Link[]
+  campaigns      Campaign[]
+  tags           Tag[]
+  accounts       Account[]
+  sessions       Session[]
+  blockedDomains BlockedDomain[]
+
+  @@index([role])
+}
+
+// Auth.js models
+// We use credentials with JWT sessions for performance and edge compatibility.
+// Database sessions are not required for JWT verification, but Account, Session,
+// and VerificationToken are included for full Auth.js Prisma adapter compatibility
+// when linking OAuth providers like Google.
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Link model
+// Core entity of LinkPulse.
+// Click history protection:
+// Expired links are never deleted by the system; expiration is calculated at runtime from expiresAt.
+// Disabled links have status set to DISABLED or ADMIN_DISABLED and stay in the database.
+// Deleting a link sets deletedAt (soft delete), retaining click history and keeping code reserved.
+model Link {
+  id             String     @id @default(cuid())
+  code           String     @unique
+  destinationUrl String
+  ownerId        String
+  owner          User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  campaignId     String?
+  campaign       Campaign?  @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  status         LinkStatus @default(ACTIVE)
+  expiresAt      DateTime?
+  maxClicks      Int?
+  clickCount     Int        @default(0)
+  passwordHash   String?
+  mobileUrl      String?
+  deletedAt      DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  clickEvents ClickEvent[]
+  tags        LinkTag[]
+
+  @@index([ownerId, deletedAt, createdAt])
+  @@index([campaignId])
+}
+
+// Campaign model
+// Allows users to group links and aggregate performance.
+model Campaign {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  links Link[]
+
+  @@index([ownerId, createdAt])
+}
+
+// Tag model
+// Simple labels attached to links, scoped per user owner.
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  links LinkTag[]
+
+  @@unique([ownerId, name])
+}
+
+// LinkTag model
+// Explicit many-to-many join table between Link and Tag.
+model LinkTag {
+  linkId String
+  tagId  String
+
+  link Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([linkId, tagId])
+  @@index([tagId])
+}
+
+// ClickEvent model
+// Records each visit asynchronously after redirect.
+// Tracks visitor fingerprint, referrer, device, browser, OS, bot flag, and outcome.
+model ClickEvent {
+  id         String      @id @default(cuid())
+  linkId     String
+  link       Link        @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  createdAt  DateTime    @default(now())
+  referrer   String?
+  deviceType String?
+  browser    String?
+  os         String?
+  country    String?
+  isBot      Boolean     @default(false)
+  visitorId  String
+  source     ClickSource @default(LINK)
+  result     ClickResult @default(SUCCESS)
+
+  @@index([linkId, createdAt])
+  @@index([linkId, isBot])
+  @@index([createdAt])
+}
+
+// BlockedDomain model
+// Admin managed list of banned destination domains.
+model BlockedDomain {
+  id        String   @id @default(cuid())
+  domain    String   @unique
+  addedById String?
+  addedBy   User?    @relation(fields: [addedById], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+}
