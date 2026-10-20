@@ -295,22 +295,23 @@ export default function NewLinkPage() {
         body: JSON.stringify(payload),
       });
 
-      const createdCode = created.code || trimmedCode;
+      const confirmedCode = created.code?.trim();
 
-      if (created.shortUrl) {
-        setShortUrl(created.shortUrl);
-      } else if (createdCode) {
-        setShortUrl(
-          `${window.location.origin}/${encodeURIComponent(createdCode)}`
-        );
-      } else {
-        setErrorMessage(
-          "The server did not return a short URL or link code. Check your links list before trying again."
-        );
-        return;
-      }
+if (created.shortUrl?.trim()) {
+  setShortUrl(created.shortUrl.trim());
+} else if (confirmedCode) {
+  // Build the URL only from a code confirmed by the server.
+  setShortUrl(
+    `${window.location.origin}/${encodeURIComponent(confirmedCode)}`
+  );
+} else {
+  setErrorMessage(
+    "The server response did not contain a confirmed short URL or link code. No success was reported."
+  );
+  return;
+}
 
-      setStep(3);
+setStep(3);
     } catch (error) {
       setErrorMessage(
         error instanceof Error
