@@ -11,6 +11,7 @@ import { buildClickEventData } from "@/lib/redirect/click-event-data";
 import { parseUserAgent } from "@/lib/redirect/user-agent";
 import { getVisitorSalt } from "@/lib/env";
 import { resolveUnlockSecret, verifyUnlockCookie } from "@/lib/redirect/unlock-cookie";
+import { selectRedirectDestination } from "@/lib/redirect/destination";
 
 function scheduleClickLog(
   request: NextRequest,
@@ -90,6 +91,7 @@ export async function GET(
       }
 
       if (!metadata.isBot) {
+        // Cached clickCount may be stale; this conditional update remains authoritative on every success.
         const countResult = await db.$executeRaw`
           UPDATE "Link"
           SET "clickCount" = "clickCount" + 1
@@ -104,14 +106,11 @@ export async function GET(
       }
 
       scheduleClickLog(request, link.id, "SUCCESS", userAgent);
-      const destinationUrl =
-        metadata.deviceType === "mobile" && link?.mobileUrl
-          ? link.mobileUrl
-          : link?.destinationUrl;
-
-      if (destinationUrl === undefined) {
-        return fail("INTERNAL_ERROR", "Redirect destination unavailable", 500);
-      }
+      const destinationUrl = selectRedirectDestination(
+        metadata.deviceType,
+        link.destinationUrl,
+        link.mobileUrl,
+      );
 
       return NextResponse.redirect(destinationUrl, { status: 302 });
     }
