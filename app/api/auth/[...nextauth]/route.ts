@@ -1,12 +1,7 @@
 // Owner: Milan | Task: MIL-P1-2 | Priority: P1
-import { NextRequest } from "next/server";
-import { fail } from "@/lib/api-response";
+// Auth.js endpoints: sign-in, callbacks, sign-out, CSRF and providers.
+// GET /api/auth/session is served by app/api/auth/session/route.ts so that it
+// follows the { data } envelope in docs/API.md.
+import { handlers } from "@/lib/auth";
 
-// TODO (MIL): Set up NextAuth handlers using handlers from lib/auth.ts
-export async function GET(_request: NextRequest) {
-  return fail("NOT_IMPLEMENTED", "Task MIL-P1-2: Auth GET handler not implemented");
-}
-
-export async function POST(_request: NextRequest) {
-  return fail("NOT_IMPLEMENTED", "Task MIL-P1-2: Auth POST handler not implemented");
-}
+export const { GET, POST } = handlers;
