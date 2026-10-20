@@ -1,8 +1,15 @@
 // Owner: Milan | Task: MIL-P1-6 | Priority: P1
 import { NextRequest } from "next/server";
-import { fail } from "@/lib/api-response";
+import { requireAdmin } from "@/lib/rbac";
+import { listAdminLinks } from "@/lib/admin";
+import { ok, toErrorResponse } from "@/lib/api-response";
 
-// TODO (MIL): List all links platform-wide with status and search (admin only)
-export async function GET(_request: NextRequest) {
-  return fail("NOT_IMPLEMENTED", "Task MIL-P1-6: Admin links list not implemented");
+export async function GET(request: NextRequest) {
+  try {
+    await requireAdmin();
+    const { links, meta } = await listAdminLinks(request.nextUrl.searchParams);
+    return ok(links, { meta });
+  } catch (err: unknown) {
+    return toErrorResponse(err);
+  }
 }
