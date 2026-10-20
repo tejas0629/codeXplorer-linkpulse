@@ -1,22 +1,36 @@
-
- // Owner: Megha | Task: MEG-P1-1 | Priority: P1
+// Owner: Megha | Task: MEG-P1-1 | Priority: P1
 
 "use client";
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import { Menu, X, LogOut } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { Sidebar } from "@/components/layout/sidebar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/links": "My Links",
   "/links/new": "Create Link",
   "/campaigns": "Campaigns",
-  "/qr": "QR Codes",
   "/import": "CSV Import",
+  "/trace": "Redirect Trace",
+  "/admin": "Admin Overview",
+  "/admin/users": "User Management",
+  "/admin/links": "All Platform Links",
+  "/admin/blocklist": "Domain Blocklist",
 };
 
-export function Navbar() {
+export interface NavbarUser {
+  id?: string | null;
+  name?: string | null;
+  email?: string | null;
+  role?: string | null;
+}
+
+export function Navbar({ user }: { user?: NavbarUser | null }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -27,6 +41,14 @@ export function Navbar() {
   function closeMenu() {
     setMenuOpen(false);
   }
+
+  const initial = (
+    user?.name?.[0] ||
+    user?.email?.[0] ||
+    "U"
+  ).toUpperCase();
+
+  const role = user?.role || "USER";
 
   return (
     <>
@@ -40,9 +62,11 @@ export function Navbar() {
             onClick={() => setMenuOpen((open) => !open)}
             className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:hidden"
           >
-            <span aria-hidden="true" className="text-xl">
-              {menuOpen ? "×" : "☰"}
-            </span>
+            {menuOpen ? (
+              <X className="size-5" aria-hidden="true" />
+            ) : (
+              <Menu className="size-5" aria-hidden="true" />
+            )}
           </button>
 
           <h1 className="text-lg font-semibold tracking-tight">
@@ -52,22 +76,40 @@ export function Navbar() {
 
         <div className="flex items-center gap-3">
           <div
-            aria-label="User profile placeholder"
+            aria-label="User avatar"
             role="img"
-            className="flex size-9 items-center justify-center rounded-full bg-muted text-sm font-semibold text-foreground"
+            className="flex size-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
           >
-            U
+            {initial}
           </div>
 
-          <span className="hidden text-sm text-muted-foreground sm:inline">
-            User
-          </span>
+          <div className="hidden flex-col sm:flex">
+            <span className="text-sm font-medium leading-none text-foreground">
+              {user?.name || user?.email || "User"}
+            </span>
+            {user?.email && user?.name && (
+              <span className="text-xs text-muted-foreground">{user.email}</span>
+            )}
+          </div>
+
+          <Badge variant={role === "ADMIN" ? "default" : "secondary"} className="text-xs">
+            {role}
+          </Badge>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="gap-1.5 text-xs font-medium"
+          >
+            <LogOut className="size-3.5" />
+            Sign out
+          </Button>
         </div>
       </header>
 
       {menuOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          {/* Backdrop: click outside the menu to close it */}
           <button
             type="button"
             aria-label="Close navigation menu"
@@ -75,7 +117,6 @@ export function Navbar() {
             className="absolute inset-0 h-full w-full bg-black/50"
           />
 
-          {/* Mobile navigation drawer */}
           <aside
             id="mobile-navigation"
             aria-label="Mobile navigation"
@@ -95,7 +136,7 @@ export function Navbar() {
             </div>
 
             <div onClick={closeMenu}>
-              <Sidebar />
+              <Sidebar user={user} />
             </div>
           </aside>
         </div>

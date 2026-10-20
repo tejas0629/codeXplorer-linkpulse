@@ -127,8 +127,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       authorize: (credentials) => verifyCredentials(credentials),
     }),
-    // Reads AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET from the environment.
-    Google,
+    // Reads AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET from the environment if configured.
+    ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET ? [Google] : []),
   ],
   callbacks: {
     async jwt({ token, user }) {

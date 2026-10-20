@@ -1,6 +1,8 @@
 // Owner: Megha | Task: MEG-P1-4 | Priority: P1
 "use client";
 
+import { RiskBadge } from "@/components/links/risk-badge";
+
 interface StepDestinationProps {
   destinationUrl: string;
   code: string;
@@ -9,6 +11,7 @@ interface StepDestinationProps {
   onContinue: () => void;
   checkStatus: "idle" | "checking" | "available" | "taken" | "invalid" | "unavailable";
   checkMessage: string;
+  risk?: "LOW" | "MEDIUM" | "HIGH";
 }
 
 export function StepDestination({
@@ -19,6 +22,7 @@ export function StepDestination({
   onContinue,
   checkStatus,
   checkMessage,
+  risk,
 }: StepDestinationProps) {
   const urlIsValid = (() => {
     try {
@@ -36,11 +40,11 @@ export function StepDestination({
       code.trim().length <= 64);
 
   const canContinue =
-  urlIsValid &&
-  codeIsValid &&
-  checkStatus !== "checking" &&
-  checkStatus !== "taken" &&
-  checkStatus !== "invalid";
+    urlIsValid &&
+    codeIsValid &&
+    checkStatus !== "checking" &&
+    checkStatus !== "taken" &&
+    checkStatus !== "invalid";
 
   return (
     <section className="space-y-5">
@@ -52,9 +56,12 @@ export function StepDestination({
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="destinationUrl" className="text-sm font-medium">
-          Destination URL *
-        </label>
+        <div className="flex items-center justify-between">
+          <label htmlFor="destinationUrl" className="text-sm font-medium">
+            Destination URL *
+          </label>
+          {risk && <RiskBadge score={risk} />}
+        </div>
         <input
           id="destinationUrl"
           type="url"
