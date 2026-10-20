@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { ApiError } from "@/lib/api-response";
 import { assertRateLimit, createLinkLimiter, checkLimiter } from "@/lib/rate-limit";
-import { isAliasAvailable, createUniqueCode, validateAlias } from "@/lib/shortcode";
+import { isAliasAvailable, createUniqueCode, validateAlias, normalizeCode } from "@/lib/shortcode";
 import { parseBody, parseQuery, createLinkSchema, updateLinkSchema, listLinksQuerySchema, checkLinkQuerySchema, assertDomainNotBlocked, validateUrl } from "@/lib/validation";
 import type { SessionUser, LinkDetailResponse, LinkListItem, DeleteLinkResponse, CheckLinkResponse, PaginationMeta } from "@/types/api";
 import type { Prisma, LinkStatus } from "@prisma/client";
@@ -74,16 +74,17 @@ export async function createLink(
   let finalCode: string;
 
   if (requestedCode) {
-    const available = await isAliasAvailable(requestedCode);
+    const normalized = normalizeCode(requestedCode);
+    const available = await isAliasAvailable(normalized);
     if (!available) {
       throw new ApiError(
         "ALIAS_TAKEN",
         "The requested alias is already taken",
         409,
-        { code: "Alias is already in use" }
+        { alias: "Alias is already in use" }
       );
     }
-    finalCode = requestedCode;
+    finalCode = normalized;
   } else {
     finalCode = await createUniqueCode(async (candidate) => {
       const isAvailable = await isAliasAvailable(candidate);
@@ -180,7 +181,7 @@ export async function createLink(
         "ALIAS_TAKEN",
         "The requested alias is already taken",
         409,
-        { code: "Alias is already in use" }
+        { alias: "Alias is already in use" }
       );
     }
     throw err;
@@ -554,7 +555,8 @@ export async function checkLink(
       aliasAvailable = false;
       aliasError = validation.message;
     } else {
-      aliasAvailable = await isAliasAvailable(query.alias);
+      const normalized = normalizeCode(query.alias);
+      aliasAvailable = await isAliasAvailable(normalized);
       if (!aliasAvailable) {
         aliasError = "The requested alias is already taken";
       }

@@ -39,9 +39,15 @@ export const RESERVED_WORDS_SET = new Set<string>(
   RESERVED_WORDS.map((word) => word.toLowerCase())
 );
 
-// 57 characters: base62 excluding look-alike characters (0, O, 1, l, I)
-export const SHORTCODE_ALPHABET =
-  "23456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
+// 32 characters: lowercase only, excluding look-alike characters (0, 1, l, o)
+export const SHORTCODE_ALPHABET = "23456789abcdefghijkmnpqrstuvwxyz";
+
+/**
+ * Normalizes a code by trimming surrounding whitespace and converting to lowercase.
+ */
+export function normalizeCode(code: string): string {
+  return code.trim().toLowerCase();
+}
 
 export type AliasValidationCode =
   | "TOO_SHORT"
@@ -124,10 +130,12 @@ export async function isAliasAvailable(alias: string): Promise<boolean> {
     return false;
   }
 
+  const normalized = normalizeCode(alias);
+
   const existing = await db.link.findFirst({
     where: {
       code: {
-        equals: alias,
+        equals: normalized,
         mode: "insensitive",
       },
     },

@@ -1,5 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
-import { RESERVED_WORDS, validateAlias, isValidAlias, generateShortCode, createUniqueCode, SHORTCODE_ALPHABET } from "./shortcode";
+import {
+  RESERVED_WORDS,
+  validateAlias,
+  isValidAlias,
+  generateShortCode,
+  createUniqueCode,
+  normalizeCode,
+} from "./shortcode";
 import { ApiError } from "@/lib/api-response";
 
 describe("lib/shortcode.ts", () => {
@@ -101,6 +108,15 @@ describe("lib/shortcode.ts", () => {
     });
   });
 
+  describe("normalizeCode", () => {
+    it("trims surrounding whitespace and converts to lowercase", () => {
+      expect(normalizeCode("  Diwali  ")).toBe("diwali");
+      expect(normalizeCode("MY-PROMO_2026")).toBe("my-promo_2026");
+      expect(normalizeCode("CodeX")).toBe("codex");
+      expect(normalizeCode("already-lowercase")).toBe("already-lowercase");
+    });
+  });
+
   describe("generateShortCode", () => {
     it("generates a code of default length 7", () => {
       const code = generateShortCode();
@@ -112,16 +128,16 @@ describe("lib/shortcode.ts", () => {
       expect(generateShortCode(5)).toHaveLength(5);
     });
 
-    it("never includes look-alike characters (0, O, 1, l, I) across 1000 generated codes", () => {
-      const excludedChars = new Set(["0", "O", "1", "l", "I"]);
+    it("alphabet is lowercase only and contains none of 0, 1, l, o over 1000 generated codes", () => {
+      const excludedRegex = /[01loOI]/;
+      const validAlphabetRegex = /^[2-9a-kmnp-z]+$/;
       for (let i = 0; i < 1000; i++) {
         const code = generateShortCode(8);
-        for (const char of code) {
-          expect(excludedChars.has(char)).toBe(false);
-          expect(SHORTCODE_ALPHABET).toContain(char);
-        }
+        expect(code).toBe(code.toLowerCase());
+        expect(excludedRegex.test(code)).toBe(false);
+        expect(validAlphabetRegex.test(code)).toBe(true);
       }
-    });
+    }, 15000);
   });
 
   describe("createUniqueCode", () => {

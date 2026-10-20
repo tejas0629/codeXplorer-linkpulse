@@ -119,6 +119,76 @@ describe("Link Service Layer (lib/links.ts)", () => {
       });
     });
 
+    it('custom alias "Diwali" is saved as "diwali"', async () => {
+      vi.mocked(db.blockedDomain.findFirst).mockResolvedValue(null);
+      vi.mocked(db.link.findFirst).mockResolvedValue(null);
+      vi.mocked(db.link.create).mockImplementation(((args: any) =>
+        Promise.resolve({
+          id: "link-diwali",
+          code: args.data.code,
+          destinationUrl: args.data.destinationUrl,
+          ownerId: mockUser.id,
+          campaignId: null,
+          status: "ACTIVE",
+          expiresAt: null,
+          maxClicks: null,
+          clickCount: 0,
+          passwordHash: null,
+          mobileUrl: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          tags: [],
+        })) as any);
+
+      const result = await createLink(mockUser, {
+        destinationUrl: "https://example.com/diwali",
+        code: "Diwali",
+      });
+
+      expect(result.code).toBe("diwali");
+      expect(db.link.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            code: "diwali",
+          }),
+        })
+      );
+    });
+
+    it("generated code never contains an uppercase letter", async () => {
+      vi.mocked(db.blockedDomain.findFirst).mockResolvedValue(null);
+      vi.mocked(db.link.findFirst).mockResolvedValue(null);
+      let capturedCode = "";
+      vi.mocked(db.link.create).mockImplementation(((args: any) => {
+        capturedCode = args.data.code;
+        return Promise.resolve({
+          id: "link-auto",
+          code: capturedCode,
+          destinationUrl: args.data.destinationUrl,
+          ownerId: mockUser.id,
+          campaignId: null,
+          status: "ACTIVE",
+          expiresAt: null,
+          maxClicks: null,
+          clickCount: 0,
+          passwordHash: null,
+          mobileUrl: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          tags: [],
+        });
+      }) as any);
+
+      const result = await createLink(mockUser, {
+        destinationUrl: "https://example.com/auto",
+      });
+
+      expect(result.code).toBe(result.code.toLowerCase());
+      expect(/[A-Z]/.test(result.code)).toBe(false);
+      expect(capturedCode).toBe(capturedCode.toLowerCase());
+      expect(/[A-Z]/.test(capturedCode)).toBe(false);
+    });
+
     it("throws 409 ALIAS_TAKEN when custom alias already exists", async () => {
       vi.mocked(db.blockedDomain.findFirst).mockResolvedValue(null);
       // Alias check finds an existing link
@@ -133,6 +203,9 @@ describe("Link Service Layer (lib/links.ts)", () => {
         expect.objectContaining({
           status: 409,
           code: "ALIAS_TAKEN",
+          fields: expect.objectContaining({
+            alias: "Alias is already in use",
+          }),
         })
       );
     });
@@ -155,6 +228,60 @@ describe("Link Service Layer (lib/links.ts)", () => {
         expect.objectContaining({
           status: 409,
           code: "ALIAS_TAKEN",
+          fields: expect.objectContaining({
+            alias: "Alias is already in use",
+          }),
+        })
+      );
+    });
+
+    it("throws 400 VALIDATION_ERROR with fields.alias for reserved word 'api'", async () => {
+      await expect(
+        createLink(mockUser, {
+          destinationUrl: "https://example.com",
+          alias: "api",
+        })
+      ).rejects.toThrowError(
+        expect.objectContaining({
+          status: 400,
+          code: "VALIDATION_ERROR",
+          fields: expect.objectContaining({
+            alias: expect.stringContaining("reserved system path"),
+          }),
+        })
+      );
+    });
+
+    it("throws 400 VALIDATION_ERROR with fields.alias for too short alias 'ab'", async () => {
+      await expect(
+        createLink(mockUser, {
+          destinationUrl: "https://example.com",
+          alias: "ab",
+        })
+      ).rejects.toThrowError(
+        expect.objectContaining({
+          status: 400,
+          code: "VALIDATION_ERROR",
+          fields: expect.objectContaining({
+            alias: expect.stringContaining("at least 3 characters"),
+          }),
+        })
+      );
+    });
+
+    it("throws 400 VALIDATION_ERROR with fields.alias for invalid characters", async () => {
+      await expect(
+        createLink(mockUser, {
+          destinationUrl: "https://example.com",
+          alias: "bad*alias!",
+        })
+      ).rejects.toThrowError(
+        expect.objectContaining({
+          status: 400,
+          code: "VALIDATION_ERROR",
+          fields: expect.objectContaining({
+            alias: expect.stringContaining("only letters, numbers"),
+          }),
         })
       );
     });
@@ -438,6 +565,29 @@ describe("Link Service Layer (lib/links.ts)", () => {
       expect(check.domainBlocked).toBe(false);
       expect(check.aliasError).toBeUndefined();
       expect(check.urlError).toBeUndefined();
+    });
+
+    it("reports aliasAvailable false for DIWALI when diwali exists", async () => {
+      vi.mocked(db.link.findFirst).mockResolvedValue({
+        id: "link-diwali",
+        code: "diwali",
+      } as any);
+
+      const check = await checkLink({
+        alias: "DIWALI",
+      });
+
+      expect(check.aliasAvailable).toBe(false);
+      expect(check.aliasError).toBe("The requested alias is already taken");
+      expect(db.link.findFirst).toHaveBeenCalledWith({
+        where: {
+          code: {
+            equals: "diwali",
+            mode: "insensitive",
+          },
+        },
+        select: { id: true },
+      });
     });
 
     it("returns domainBlocked true and urlError if domain is blocked", async () => {

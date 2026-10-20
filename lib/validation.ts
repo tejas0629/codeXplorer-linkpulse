@@ -178,7 +178,8 @@ export type CheckLinkQueryInput = z.infer<typeof checkLinkQuerySchema>;
 function extractFieldErrors(issues: z.ZodIssue[]): Record<string, string> {
   const fields: Record<string, string> = {};
   for (const issue of issues) {
-    const path = issue.path.join(".") || "root";
+    const rawPath = issue.path.join(".") || "root";
+    const path = rawPath === "code" ? "alias" : rawPath;
     if (!fields[path]) {
       fields[path] = issue.message;
     }

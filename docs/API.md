@@ -149,12 +149,12 @@ All errors return an `error` object with standard codes, human-readable message,
 - Owner: Chirag
 - Priority: P1
 - Auth: USER or ADMIN
-- Description: Creates a new shortened link with optional rules, tags, and campaign.
+- Description: Creates a new shortened link with optional rules, tags, and campaign. Short codes are always stored in lowercase (normalized on save) and aliases are matched case-insensitively.
 - Request Body:
 ```json
 {
   "destinationUrl": "https://company.org/annual-report-2026",
-  "code": "report2026",
+  "alias": "report2026",
   "campaignId": "clzcampaign000108l8a1b2c3d4",
   "expiresAt": "2026-12-31T23:59:59.000Z",
   "maxClicks": 500,
@@ -163,7 +163,7 @@ All errors return an `error` object with standard codes, human-readable message,
   "tagNames": ["annual", "finance"]
 }
 ```
-- Validation: destinationUrl (valid url, max 2048, not blocked), code (3 to 64 chars, alphanumeric and hyphens), maxClicks (positive integer).
+- Validation: destinationUrl (valid url, max 2048, not blocked), alias (or code) (3 to 64 chars, alphanumeric and hyphens; accepts mixed case in input but is normalized to lowercase on save; reserved words are case-insensitive), maxClicks (positive integer).
 - Success Response (201 Created):
 ```json
 {
@@ -184,7 +184,7 @@ All errors return an `error` object with standard codes, human-readable message,
   }
 }
 ```
-- Error Codes: 400 (INVALID_URL, BLOCKED_DOMAIN, INVALID_ALIAS), 401 (UNAUTHORIZED), 409 (ALIAS_TAKEN), 429 (RATE_LIMIT_EXCEEDED).
+- Error Codes: 400 (INVALID_URL, BLOCKED_DOMAIN, VALIDATION_ERROR), 401 (UNAUTHORIZED), 409 (ALIAS_TAKEN), 429 (RATE_LIMIT_EXCEEDED). Field errors return fields.alias for alias validation and conflict errors.
 
 ### GET /api/links
 - Owner: Chirag
@@ -310,7 +310,7 @@ All errors return an `error` object with standard codes, human-readable message,
 - Owner: Chirag
 - Priority: P1
 - Auth: USER or ADMIN
-- Description: Validates alias availability and tests destination domain against blocklist before publishing.
+- Description: Validates alias availability (case-insensitively against existing codes and reserved words) and tests destination domain against blocklist before publishing.
 - Query Parameters: `?alias=my-promo&url=https://target.com`
 - Success Response (200 OK):
 ```json
