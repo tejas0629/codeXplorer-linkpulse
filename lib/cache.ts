@@ -3,6 +3,7 @@ import "server-only";
 import { Redis } from "@upstash/redis";
 import type { RedirectLink } from "@/lib/redirect/get-link";
 import { createLinkCache, type LinkCacheClient } from "@/lib/redirect/link-cache";
+import type { LinkSnapshot as RuleLinkInput } from "@/lib/redirect/rules";
 
 function usableCredential(value: string | undefined): value is string {
   return value !== undefined && value.trim() !== "" && value.trim().toLowerCase() !== "dummy";

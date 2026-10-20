@@ -1,0 +1,34 @@
+### LinkPulse Analytics API Examples (VS Code REST Client format)
+@baseUrl = http://localhost:3000
+@linkId = clzlink0000108l8d1e2f3g4
+@campaignId = clzcamp000108l8a1b2c3d1
+
+### 1. Get analytics summary (default 30d period, bot clicks excluded)
+GET {{baseUrl}}/api/analytics/summary
+
+### 2. Get analytics summary with custom period and bot traffic included
+GET {{baseUrl}}/api/analytics/summary?period=7d&includeBots=true
+
+### 3. Get analytics summary for a specific link
+GET {{baseUrl}}/api/analytics/summary?linkId={{linkId}}
+
+### 4. Get timeseries metrics (daily bucketing with gap filling)
+GET {{baseUrl}}/api/analytics/timeseries?period=30d
+
+### 5. Get timeseries with custom date range
+GET {{baseUrl}}/api/analytics/timeseries?from=2026-09-20T00:00:00.000Z&to=2026-10-20T23:59:59.999Z
+
+### 6. Get device, browser, and referrer breakdown
+GET {{baseUrl}}/api/analytics/breakdown?period=30d
+
+### 7. Get top performing links by click volume
+GET {{baseUrl}}/api/analytics/top-links?limit=5
+
+### 8. Get campaign performance analytics
+GET {{baseUrl}}/api/analytics/campaigns
+
+### 9. Get link health alerts (expiring soon, click limits, traffic spikes)
+GET {{baseUrl}}/api/analytics/alerts
+
+### 10. Get plain-English automated analytics insights
+GET {{baseUrl}}/api/analytics/insights?period=30d

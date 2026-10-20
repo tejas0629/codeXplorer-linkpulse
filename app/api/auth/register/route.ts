@@ -1,8 +1,14 @@
 // Owner: Milan | Task: MIL-P1-3 | Priority: P1
 import { NextRequest } from "next/server";
-import { fail } from "@/lib/api-response";
+import { registerUser } from "@/lib/auth";
+import { created, toErrorResponse } from "@/lib/api-response";
 
-// TODO (MIL): Register new user account with bcrypt password hashing and duplicate check
-export async function POST(_request: NextRequest) {
-  return fail("NOT_IMPLEMENTED", "Task MIL-P1-3: User registration not implemented");
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json().catch(() => ({}));
+    const user = await registerUser(body);
+    return created(user);
+  } catch (err: unknown) {
+    return toErrorResponse(err);
+  }
 }

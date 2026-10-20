@@ -1,13 +1,34 @@
 // Owner: Chirag | Task: CHI-P1-4 | Priority: P1
 import { NextRequest } from "next/server";
-import { fail } from "@/lib/api-response";
+import { requireUser } from "@/lib/links-auth";
+import { createLink, listLinks } from "@/lib/links";
+import { created, ok, toErrorResponse, type PaginationMeta } from "@/lib/api-response";
+import { RateLimitError } from "@/lib/rate-limit";
 
-// TODO (CHI): Create new shortened link with optional rules, tags, and campaign
-export async function POST(_request: NextRequest) {
-  return fail("NOT_IMPLEMENTED", "Task CHI-P1-4: Link creation not implemented");
+export async function POST(request: NextRequest) {
+  try {
+    const user = await requireUser();
+    const body = await request.json().catch(() => ({}));
+    const link = await createLink(user, body);
+    return created(link);
+  } catch (err: unknown) {
+    if (err instanceof RateLimitError) {
+      return err.toResponse();
+    }
+    return toErrorResponse(err);
+  }
 }
 
-// TODO (CHI): List links with pagination, search, status filter, and ownership check
-export async function GET(_request: NextRequest) {
-  return fail("NOT_IMPLEMENTED", "Task CHI-P1-4: Links listing not implemented");
+export async function GET(request: NextRequest) {
+  try {
+    const user = await requireUser();
+    const searchParams = request.nextUrl.searchParams;
+    const result = await listLinks(user, searchParams);
+    return ok(result.links, { meta: result.meta as unknown as PaginationMeta });
+  } catch (err: unknown) {
+    if (err instanceof RateLimitError) {
+      return err.toResponse();
+    }
+    return toErrorResponse(err);
+  }
 }
